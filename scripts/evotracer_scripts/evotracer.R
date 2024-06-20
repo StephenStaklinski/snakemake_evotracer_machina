@@ -2,7 +2,7 @@ if (!requireNamespace("EvoTraceR", quietly = TRUE)) {
   if (!requireNamespace("devtools", quietly = TRUE)) {
     install.packages("devtools")
   }
-  devtools::install_github("Nowak-Lab/EvoTraceR")
+  devtools::install_github("Nowak-Lab/EvoTraceR@v1.0.1")
 }
 library(EvoTraceR)
 args = commandArgs(trailingOnly=TRUE)
@@ -31,8 +31,8 @@ if (length(zip_files) > 0) {
 }
 
 
-trimmomatic_path <- "Trimmomatic-0.39/trimmomatic-0.39.jar"
-flash_path <- "/opt/conda/bin/flash"
+trimmomatic_path <- "scripts/Trimmomatic-0.39/trimmomatic-0.39.jar"
+flash_path <- Sys.which("flash")
 
 EvoTraceR_object <-
   initialize_EvoTraceR(

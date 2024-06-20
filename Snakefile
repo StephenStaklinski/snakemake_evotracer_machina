@@ -36,7 +36,7 @@ rule runEvotracer:
         fastqDir = config['fastqDir'],
         evoOutDir = outdir + "/evotracer_output"
     conda:
-        "envs/evotracer.yaml"
+        'envs/evotracer.yaml'
     shell:
         """
         Rscript scripts/evotracer_scripts/evotracer.R {params.fastqDir} {params.evoOutDir}
@@ -49,8 +49,8 @@ rule runEvotracer:
 #         outdir + "/evotracer_output/graphs_analysis/stat_cps_dispersal_bargraph_hm.pdf"
 #     params:
 #         evoOutDir = outdir + "/evotracer_output/"
-#     conda:
-#         "envs/evotracer.yaml"
+#     singularity:
+#         "envs/evotracer.sif"
 #     shell:
 #         """
 #         Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.1_hist_freq_indels.R {input.rDataObject} {params.evoOutDir};
@@ -95,8 +95,8 @@ rule runEvotracer:
 #         "test.txt"
 #     params:
 #         machinaOutDir = outdir + "machina_output"
-#     conda:
-#         "envs/evotracer.yaml"
+#     singularity:
+#         "envs/evotracer.sif"
 #     shell:
 #         """
 #         Rscript scripts/plotting_scripts/5_machina_analysis/02_machina_tree_v1.R {input.extendedMachina} {params.machinaOutDir};
