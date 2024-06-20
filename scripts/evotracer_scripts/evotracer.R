@@ -1,3 +1,9 @@
+if (!requireNamespace("EvoTraceR", quietly = TRUE)) {
+  if (!requireNamespace("devtools", quietly = TRUE)) {
+    install.packages("devtools")
+  }
+  devtools::install_github("Nowak-Lab/EvoTraceR")
+}
 library(EvoTraceR)
 args = commandArgs(trailingOnly=TRUE)
 
