@@ -1,8 +1,8 @@
 __default__:
   cores: 1
   mem: '5G'
-  logout: 'job_logs/{rule}.out'
-  logerror: 'job_logs/{rule}.err'
+  logout: '{outdir}/job_logs/{rule}.out'
+  logerror: '{outdir}/job_logs/{rule}.err'
 
 runEvotracer:
   cores: 10
