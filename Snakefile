@@ -39,6 +39,12 @@ rule runEvotracer:
         'envs/evotracer.yaml'
     shell:
         """
+        # hack for Cassiopeia install temporarily since it ususally fails from conda install with a .yaml file. Only neccessary until singularity container is made
+        pipPackages=$(python -m pip list | grep -q cassiopeia-lineage)
+        if [ -z "$pipPackages" ]; then
+            python -m pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
+        fi
+
         Rscript scripts/evotracer_scripts/evotracer.R {params.fastqDir} {params.evoOutDir}
         """
 

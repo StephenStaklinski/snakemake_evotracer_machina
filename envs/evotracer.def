@@ -1,0 +1,47 @@
+Bootstrap: debootstrap
+OSVersion: focal
+MirrorURL: http://us.archive.ubuntu.com/ubuntu/
+
+%post
+    # Install dependencies
+    apt update -qq
+    apt install -y --no-install-recommends software-properties-common dirmngr wget git build-essential gcc g++ make
+
+    # Download Miniconda installer script
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
+    
+    # Install Miniconda
+    bash /tmp/miniconda.sh -b -p /opt/miniconda
+    
+    # Clean up
+    rm /tmp/miniconda.sh
+    
+    # Initialize Conda in bash
+    /opt/miniconda/bin/conda init bash
+
+    # Install Cassiopeia
+    /opt/miniconda/bin/conda install -y python==3.8
+    /opt/miniconda/bin/pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
+
+    # Add R repository and install R
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+    add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -cs) universe"
+    apt install -y --no-install-recommends r-base
+    add-apt-repository -y ppa:ubuntugis/ppa
+    apt-get update -y
+    apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev libgdal-dev libfontconfig1-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libharfbuzz-dev libfribidi-dev
+
+    # Install R packages from CRAN
+    Rscript -e "install.packages(c('ragg', 'openssl', 'curl', 'systemfonts', 'httpuv', 'xml2', 'usethis', 'miniUI', 'pkgdown', 'rcmdcheck', 'roxygen2', 'rversions', 'urlchecker', 'remotes', 'ape', 'BiocManager'), dependencies=TRUE)"
+    Rscript -e "BiocManager::install('ggtree')"
+    Rscript -e "install.packages(c('devtools'), dependencies=TRUE)"
+    Rscript -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"
+
+%environment
+    # Set PATH to include the Conda bin directory
+    export PATH=/opt/miniconda/bin:$PATH
+
+%runscript
+    #!/bin/bash
+    Rscript -e "$@"

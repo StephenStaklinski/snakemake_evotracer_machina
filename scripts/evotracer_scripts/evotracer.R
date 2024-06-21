@@ -1,9 +1,20 @@
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packaged("BiocManager", dependencies=TRUE)
+  BiocManager::install('ggtree')
+} else {
+  if (!requireNamespace("ggtree", quietly = TRUE)) {
+    BiocManager::install('ggtree')
+  }
+  BiocManager::install('ggtree')
+}
+
 if (!requireNamespace("EvoTraceR", quietly = TRUE)) {
   if (!requireNamespace("devtools", quietly = TRUE)) {
     install.packages("devtools")
   }
   devtools::install_github("Nowak-Lab/EvoTraceR@v1.0.1")
 }
+
 library(EvoTraceR)
 args = commandArgs(trailingOnly=TRUE)
 
