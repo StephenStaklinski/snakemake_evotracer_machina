@@ -40,8 +40,7 @@ rule runEvotracer:
     shell:
         """
         # hack for Cassiopeia install temporarily since it ususally fails from conda install with a .yaml file. Only neccessary until singularity container is made
-        pipPackages=$(python -m pip list | grep -q cassiopeia-lineage)
-        if [ -z "$pipPackages" ]; then
+        if ! python -m pip list | grep "cassiopeia-lineage"; then
             python -m pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
         fi
 
