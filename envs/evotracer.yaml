@@ -95,6 +95,7 @@ dependencies:
   - ld_impl_linux-64=2.40=hf3520f5_7
   - lerc=4.0.0=h27087fc_0
   - libblas=3.9.0=22_linux64_openblas
+  - libcblas=3.9.0=22_linux64_openblas
   - libcurl=8.8.0=hca28451_0
   - libdeflate=1.20=hd590300_0
   - libedit=3.1.20191231=he28a2e2_2
@@ -139,9 +140,11 @@ dependencies:
   - nest-asyncio=1.6.0=pyhd8ed1ab_0
   - notebook=7.2.1=pyhd8ed1ab_0
   - notebook-shim=0.2.4=pyhd8ed1ab_0
+  - numpy=2.0.0=py312h22e1c76_0
   - openssl=3.3.1=h4ab18f5_0
   - overrides=7.7.0=pyhd8ed1ab_0
   - packaging=24.1=pyhd8ed1ab_0
+  - pandas=2.2.2=py312h1d6d2e6_1
   - pandoc=3.2=ha770c72_0
   - pandocfilters=1.5.0=pyhd8ed1ab_0
   - pango=1.54.0=h84a9a3c_0
@@ -166,6 +169,7 @@ dependencies:
   - python-dateutil=2.9.0=pyhd8ed1ab_0
   - python-fastjsonschema=2.20.0=pyhd8ed1ab_0
   - python-json-logger=2.0.7=pyhd8ed1ab_0
+  - python-tzdata=2024.1=pyhd8ed1ab_0
   - python_abi=3.12=4_cp312
   - pytz=2024.1=pyhd8ed1ab_0
   - pyyaml=6.0.1=py312h98912ed_1
