@@ -1,5 +1,5 @@
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
-  install.packaged("BiocManager", dependencies=TRUE)
+  install.packages("BiocManager", dependencies=TRUE)
   BiocManager::install('ggtree')
 } else {
   if (!requireNamespace("ggtree", quietly = TRUE)) {
