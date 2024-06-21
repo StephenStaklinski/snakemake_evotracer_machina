@@ -36,7 +36,7 @@ dependencies:
       - biopython==1.83
       - bleach==6.1.0
       - bokeh==3.1.1
-      - cassiopeia-lineage==2.0.0
+      # - cassiopeia-lineage==2.0.0
       - certifi==2024.6.2
       - charset-normalizer==3.3.2
       - clarabel==0.9.0
