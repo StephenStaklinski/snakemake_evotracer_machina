@@ -21,6 +21,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 
     # Install Cassiopeia
     /opt/miniconda/bin/conda install -y python==3.8
+    /opt/miniconda/bin/conda install -y -c conda-forge -c umi_tools flash umi_tools
     /opt/miniconda/bin/pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
 
     # Add R repository and install R
@@ -44,16 +45,9 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     unzip /opt/trimmomatic/Trimmomatic-0.39.zip -d /opt/trimmomatic
     rm /opt/trimmomatic/Trimmomatic-0.39.zip
 
-    # Install FLASH
-    mkdir -p /opt/flash
-    wget http://ccb.jhu.edu/software/FLASH1/FLASH-1.2.11.tar.gz -O /opt/flash/FLASH-1.2.11.tar.gz
-    tar -xzf /opt/flash/FLASH-1.2.11.tar.gz -C /opt/flash
-    cd /opt/flash/FLASH-1.2.11
-    make
-
 %environment
     # Set PATH to include the Conda bin directory and FLASH binary
-    export PATH=/opt/miniconda/bin:/opt/flash/FLASH-1.2.11:$PATH
+    export PATH=/opt/miniconda/bin:$PATH
 
     # Set an environment variable to easily access the Trimmomatic path
     export TRIMMOMATIC_PATH=/opt/trimmomatic/Trimmomatic-0.39/trimmomatic-0.39.jar
@@ -61,5 +55,6 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 %runscript
     #!/bin/bash
     "$@"
+
 
 
