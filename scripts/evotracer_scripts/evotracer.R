@@ -31,8 +31,7 @@ if (length(zip_files) > 0) {
   cat("No zip files found in the directory.\n")
 }
 
-
-trimmomatic_path <- "scripts/Trimmomatic-0.39/trimmomatic-0.39.jar"
+trimmomatic_path <- Sys.getenv("TRIMMOMATIC_PATH")
 flash_path <- Sys.which("flash")
 
 EvoTraceR_object <-

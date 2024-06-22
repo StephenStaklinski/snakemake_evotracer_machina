@@ -5,7 +5,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 %post
     # Install dependencies
     apt update -qq
-    apt install -y --no-install-recommends software-properties-common dirmngr wget git build-essential gcc g++ make
+    apt install -y --no-install-recommends software-properties-common dirmngr wget git build-essential gcc g++ make default-jdk default-jre
 
     # Download Miniconda installer script
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
@@ -30,18 +30,36 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     apt install -y --no-install-recommends r-base
     add-apt-repository -y ppa:ubuntugis/ppa
     apt-get update -y
-    apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev libgdal-dev libfontconfig1-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libharfbuzz-dev libfribidi-dev
+    apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev libgdal-dev libfontconfig1-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libharfbuzz-dev libfribidi-dev libsodium-dev gfortran
 
     # Install R packages from CRAN
-    Rscript -e "install.packages(c('ragg', 'openssl', 'curl', 'systemfonts', 'httpuv', 'xml2', 'usethis', 'miniUI', 'pkgdown', 'rcmdcheck', 'roxygen2', 'rversions', 'urlchecker', 'remotes', 'tidytree', 'ape', 'BiocManager'), dependencies=TRUE)"
+    Rscript -e "install.packages(c('BiocManager'), dependencies=TRUE, repos='https://cloud.r-project.org')"
     Rscript -e "BiocManager::install('ggtree')"
-    Rscript -e "install.packages(c('devtools'), dependencies=TRUE)"
+    Rscript -e "install.packages(c('devtools'), dependencies=TRUE, repos='https://cloud.r-project.org')"
     Rscript -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"
 
+    # Install Trimmomatic
+    mkdir -p /opt/trimmomatic
+    wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip -O /opt/trimmomatic/Trimmomatic-0.39.zip
+    unzip /opt/trimmomatic/Trimmomatic-0.39.zip -d /opt/trimmomatic
+    rm /opt/trimmomatic/Trimmomatic-0.39.zip
+
+    # Install FLASH
+    mkdir -p /opt/flash
+    wget http://ccb.jhu.edu/software/FLASH1/FLASH-1.2.11.tar.gz -O /opt/flash/FLASH-1.2.11.tar.gz
+    tar -xzf /opt/flash/FLASH-1.2.11.tar.gz -C /opt/flash
+    cd /opt/flash/FLASH-1.2.11
+    make
+
 %environment
-    # Set PATH to include the Conda bin directory
-    export PATH=/opt/miniconda/bin:$PATH
+    # Set PATH to include the Conda bin directory and FLASH binary
+    export PATH=/opt/miniconda/bin:/opt/flash/FLASH-1.2.11:$PATH
+
+    # Set an environment variable to easily access the Trimmomatic path
+    export TRIMMOMATIC_PATH=/opt/trimmomatic/Trimmomatic-0.39/trimmomatic-0.39.jar
 
 %runscript
     #!/bin/bash
-    Rscript -e "$@"
+    "$@"
+
+
