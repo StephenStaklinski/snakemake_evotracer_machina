@@ -21,7 +21,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 
     # Install Cassiopeia
     /opt/miniconda/bin/conda install -y python==3.8
-    /opt/miniconda/bin/conda install -y -c conda-forge -c umi_tools flash umi_tools
+    /opt/miniconda/bin/conda install -y -c conda-forge -c bioconda flash umi_tools
     /opt/miniconda/bin/pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
 
     # Add R repository and install R
