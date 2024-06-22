@@ -33,7 +33,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev libgdal-dev libfontconfig1-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libharfbuzz-dev libfribidi-dev
 
     # Install R packages from CRAN
-    Rscript -e "install.packages(c('ragg', 'openssl', 'curl', 'systemfonts', 'httpuv', 'xml2', 'usethis', 'miniUI', 'pkgdown', 'rcmdcheck', 'roxygen2', 'rversions', 'urlchecker', 'remotes', 'ape', 'BiocManager'), dependencies=TRUE)"
+    Rscript -e "install.packages(c('ragg', 'openssl', 'curl', 'systemfonts', 'httpuv', 'xml2', 'usethis', 'miniUI', 'pkgdown', 'rcmdcheck', 'roxygen2', 'rversions', 'urlchecker', 'remotes', 'tidytree', 'ape', 'BiocManager'), dependencies=TRUE)"
     Rscript -e "BiocManager::install('ggtree')"
     Rscript -e "install.packages(c('devtools'), dependencies=TRUE)"
     Rscript -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"
