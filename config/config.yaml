@@ -1,3 +1,3 @@
 # set path to the fastq files for a single mouse
-fastqDir: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/males/MMUS1782/fastq_raw
+fastqDir: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/males/test/fastq_raw
 primaryTissue: BDR

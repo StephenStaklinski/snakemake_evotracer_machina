@@ -1,9 +1,9 @@
 ##########################################################################################################################
 # script to plot tree_msa_bubble_all_clonal_populations - graphs with tree, msa, bubble for all clonal populations (CPs) #
 ##########################################################################################################################
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.1_libs.R")
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.3_graphics.R")
+source("scripts/plotting_scripts/1_utils/01.1_libs.R")
+source("scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
+source("scripts/plotting_scripts/1_utils/01.3_graphics.R")
 
 args = commandArgs(trailingOnly=TRUE)
 
@@ -56,8 +56,8 @@ tree_phylo <-
 
 ###### output ######
 # create output subdir: for phylogeny analysis (alt. output_dir -> EvoTraceR_object$output_directory)
-if (!dir.exists(output_dir + "/tree_msa_bubble_all_cp")) 
-{dir.create(output_dir + "/tree_msa_bubble_all_cp", recursive = TRUE)}
+if (!dir.exists(output_dir + "/evotracer_graphs")) 
+{dir.create(output_dir + "/evotracer_graphs", recursive = TRUE)}
 
 ###### (1) adjust data for bubble plot (quantiles based) ######
 ## adjust based on quanties
@@ -480,7 +480,7 @@ msa_cna_bc_bubble_qnt_ggtree_mp <- print(msa_cna_bc_bubble_qnt_ggtree_mp) & them
 
 
 ## for publication and presentations
-ggsave(filename=output_dir + "/tree_msa_bubble_all_cp/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf",plot=msa_cna_bc_bubble_qnt_ggtree_mp,width=50, height=dim(tree_df)[1]*0.7, units = "cm", limitsize = FALSE)} else {
+ggsave(filename=output_dir + "/evotracer_graphs/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf",plot=msa_cna_bc_bubble_qnt_ggtree_mp,width=50, height=dim(tree_df)[1]*0.7, units = "cm", limitsize = FALSE)} else {
 
 ### tuniec ###
 

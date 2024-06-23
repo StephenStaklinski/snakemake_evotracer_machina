@@ -1,7 +1,7 @@
 ###### script for plotting counts edits/marks size, type and assigned affected sites ######
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.1_libs.R")
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.3_graphics.R")
+source("scripts/plotting_scripts/1_utils/01.1_libs.R")
+source("scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
+source("scripts/plotting_scripts/1_utils/01.3_graphics.R")
 
 args = commandArgs(trailingOnly=TRUE)
 load(args[1])
@@ -16,7 +16,7 @@ histo_sites_start <-
 
 ###### data outputs ######
 # output dir: for graphs analysis
-graphs_analysis_dir <- paste0(output_dir, "/graphs_analysis")
+graphs_analysis_dir <- paste0(output_dir, "/evotracer_graphs")
 if (!dir.exists(graphs_analysis_dir)) 
 {dir.create(graphs_analysis_dir, recursive = TRUE)}
 

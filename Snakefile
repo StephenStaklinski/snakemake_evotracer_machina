@@ -4,23 +4,25 @@ from numpy import unique
 
 paths = glob('{}/*'.format(config['fastqDir']))
 reads = [path for path in paths if os.path.isfile(path)]
-mouseID = unique([os.path.basename(path).split("_")[0] for path in reads])
+if len(reads) == 0:
+    raise ValueError("No fastq files found in the input directory.")
+mouseID = os.path.basename(reads[0]).split("_")[0]
 tissues = unique([os.path.basename(path).split("_")[1] for path in reads])
-sample = unique([os.path.basename(path).split("_")[-2] for path in reads])
+sample = os.path.basename(reads[0]).split("_")[-2]
 outdir = os.path.dirname(config['fastqDir'])
 
-# output extracted info from input fastq dir
-print("Info extracted from input fastq dir:")
-print(f"Fastq files: {reads}")
-print(f"Mouse: {mouseID}")
-print(f"Tissues: {tissues}")
-print(f"Sample: {sample}")
-print(f"Outdir: {outdir}")
+# # output extracted info from input fastq dir
+# print("Info extracted from input fastq dir:")
+# print(f"Fastq files: {reads}")
+# print(f"Mouse: {mouseID}")
+# print(f"Tissues: {tissues}")
+# print(f"Sample: {sample}")
+# print(f"Outdir: {outdir}")
 
 rule all:
     input:
-        f"{outdir}/evotracer_output/{os.path.basename(outdir)}_EvoTraceR.RData",
-        # f"{outdir}/evotracer_output/graphs_analysis/stat_cps_dispersal_bargraph_hm.pdf",
+        f"{outdir}/evotracer_output/{mouseID}_evotracer.RData",
+        f"{outdir}/evotracer_output/evotracer_graphs/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf"
         # f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
         # "test.txt"
 
@@ -31,7 +33,7 @@ rule runEvotracer:
     output:
         asvStat = outdir + "/evotracer_output/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
         nwk = outdir + "/evotracer_output/phylogeny_analysis/phylogeny_del_ins/tree_all_clones.newick",
-        rDataObject = outdir + "/evotracer_output/" + os.path.basename(outdir) + "_EvoTraceR.RData"
+        rDataObject = f"{outdir}/evotracer_output/{mouseID}_evotracer.RData"
     params:
         fastqDir = config['fastqDir'],
         evoOutDir = outdir + "/evotracer_output"
@@ -39,30 +41,34 @@ rule runEvotracer:
         'envs/evotracer.sif'
     shell:
         """
-        Rscript scripts/evotracer_scripts/evotracer.R {params.fastqDir} {params.evoOutDir}
+        Rscript scripts/evotracer_scripts/evotracer.R {params.fastqDir} {params.evoOutDir} {mouseID}
         """
 
-# rule plotEvotracerResults:
-#     input:
-#         rDataObject = outdir + "/evotracer_output/" + os.path.basename(outdir) + "_EvoTraceR.RData"
-#     output:
-#         outdir + "/evotracer_output/graphs_analysis/stat_cps_dispersal_bargraph_hm.pdf"
-#     params:
-#         evoOutDir = outdir + "/evotracer_output/"
-#     singularity:
-#         "envs/evotracer.sif"
-#     shell:
-#         """
-#         Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.1_hist_freq_indels.R {input.rDataObject} {params.evoOutDir};
+rule plotEvotracerResults:
+    input:
+        rDataObject = f"{outdir}/evotracer_output/{mouseID}_evotracer.RData"
+    output:
+        indels = f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf",
+        seqLen = f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_seq_length.pdf",
+        histFreq = f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_site_affected.pdf",
+        cpStats = f"{outdir}/evotracer_output/evotracer_graphs/stat_cps_dispersal_bargraph_hm.pdf",
+        cpTree = f"{outdir}/evotracer_output/evotracer_graphs/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf"
+    params:
+        evoOutDir = outdir + "/evotracer_output/"
+    singularity:
+        "envs/evotracer_plotting.sif"
+    shell:
+        """
+        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.1_hist_freq_indels.R {input.rDataObject} {params.evoOutDir};
 
-#         Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.2_hist_freq_seq_length.R {input.rDataObject} {params.evoOutDir};
+        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.2_hist_freq_seq_length.R {input.rDataObject} {params.evoOutDir};
 
-#         Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.3_hist_freq_site_marked.R {input.rDataObject} {params.evoOutDir};
+        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.3_hist_freq_site_marked.R {input.rDataObject} {params.evoOutDir};
 
-#         Rscript scripts/plotting_scripts/3_clonal_population_analysis/05.1_cp_stat_vis.R {input.rDataObject} {params.evoOutDir};
+        Rscript scripts/plotting_scripts/3_clonal_population_analysis/05.1_cp_stat_vis.R {input.rDataObject} {params.evoOutDir};
 
-#         Rscript scripts/plotting_scripts/4_phylogenetic_analysis/06.1_tree_msa_bubble_all_clones.R {input.rDataObject} {params.evoOutDir}
-#         """
+        Rscript scripts/plotting_scripts/4_phylogenetic_analysis/06.1_tree_msa_bubble_all_clones.R {input.rDataObject} {params.evoOutDir}
+        """
 
 # rule runMachina:
 #     input:

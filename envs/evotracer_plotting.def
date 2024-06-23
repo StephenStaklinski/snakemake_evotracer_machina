@@ -1,0 +1,31 @@
+Bootstrap: debootstrap
+OSVersion: focal
+MirrorURL: http://us.archive.ubuntu.com/ubuntu/
+
+%post
+    # Install system dependencies
+    apt-get update -y
+    apt-get install -y --no-install-recommends software-properties-common dirmngr wget locales
+    add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -cs) universe"
+    add-apt-repository -y ppa:ubuntugis/ppa
+    add-apt-repository ppa:ubuntu-toolchain-r/test
+    locale-gen en_US.UTF-8
+    update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+    apt-get install -y --no-install-recommends git build-essential gcc-11 g++-11 gfortran-11 gfortran make default-jdk default-jre
+    apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev libgdal-dev libfontconfig1-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libharfbuzz-dev libfribidi-dev libsodium-dev
+    
+    # Install R
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+    apt install -y --no-install-recommends r-base
+
+    # Install R packages from CRAN
+    Rscript -e "install.packages(c('BiocManager', 'tidyverse', 'tidygraph', 'ggplot2', 'ggraph', 'ggthemes', 'ggupset', 'ggtree', 'ggnewscale', 'ggstance', 'ggrepel', 'ggtext', 'aplot', 'lemon', 'broom', 'reticulate', 'igraph', 'graphlayouts', 'forcats', 'dplyr', 'scatterpie', 'treeio', 'vegan', 'gridExtra', 'RColorBrewer', 'pals', 'circlize', 'Biostrings', 'biomaRt', 'IRanges', 'ape', 'UpSetR', 'data.table', 'pacman', 'RCurl', 'viridis', 'colorspace', 'ade4', 'adegenet', 'phangorn', 'quadprog', 'pheatmap', 'TreeTools', 'phytools', 'stringr', 'readxl', 'readr', 'tibble', 'scales', 'extrafont', 'betapart', 'rlang'), dependencies=TRUE, repos='http://cran.rstudio.com/')"
+    Rscript -e "BiocManager::install(c('ggtree', 'Biostrings', 'biomaRt', 'IRanges', 'phyloseq'))"
+
+%runscript
+    #!/bin/bash
+    "$@"
+
+
+
