@@ -20,8 +20,8 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     apt install -y --no-install-recommends r-base
 
     # Install R packages from CRAN
-    Rscript -e "install.packages(c('BiocManager', 'tidyverse', 'tidygraph', 'ggplot2', 'ggraph', 'ggthemes', 'ggupset', 'ggtree', 'ggnewscale', 'ggstance', 'ggrepel', 'ggtext', 'aplot', 'lemon', 'broom', 'reticulate', 'igraph', 'graphlayouts', 'forcats', 'dplyr', 'scatterpie', 'treeio', 'vegan', 'gridExtra', 'RColorBrewer', 'pals', 'circlize', 'Biostrings', 'biomaRt', 'IRanges', 'ape', 'UpSetR', 'data.table', 'pacman', 'RCurl', 'viridis', 'colorspace', 'ade4', 'adegenet', 'phangorn', 'quadprog', 'pheatmap', 'TreeTools', 'phytools', 'stringr', 'readxl', 'readr', 'tibble', 'scales', 'extrafont', 'betapart', 'rlang'), dependencies=TRUE, repos='http://cran.rstudio.com/')"
-    Rscript -e "BiocManager::install(c('ggtree', 'Biostrings', 'biomaRt', 'IRanges', 'phyloseq'))"
+    Rscript --slave -e "install.packages(c('BiocManager', 'tidyverse', 'tidygraph', 'ggplot2', 'ggraph', 'ggthemes', 'ggupset', 'ggtree', 'ggnewscale', 'ggstance', 'ggrepel', 'ggtext', 'aplot', 'lemon', 'broom', 'reticulate', 'igraph', 'graphlayouts', 'forcats', 'dplyr', 'scatterpie', 'treeio', 'vegan', 'gridExtra', 'RColorBrewer', 'pals', 'circlize', 'Biostrings', 'biomaRt', 'IRanges', 'ape', 'UpSetR', 'data.table', 'pacman', 'RCurl', 'viridis', 'colorspace', 'ade4', 'adegenet', 'phangorn', 'quadprog', 'pheatmap', 'TreeTools', 'phytools', 'stringr', 'readxl', 'readr', 'tibble', 'scales', 'extrafont', 'betapart', 'rlang'), dependencies=TRUE, repos='http://cran.rstudio.com/', quiet=TRUE, verbose=FALSE)"
+    Rscript --slave -e "BiocManager::install(c('ggtree', 'Biostrings', 'biomaRt', 'IRanges', 'phyloseq'))"
 
 %runscript
     #!/bin/bash

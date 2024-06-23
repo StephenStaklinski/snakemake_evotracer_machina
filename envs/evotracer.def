@@ -31,9 +31,9 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     apt install -y --no-install-recommends r-base
 
     # Install R packages from CRAN
-    Rscript -e "install.packages(c('BiocManager', 'devtools'), dependencies=TRUE, repos='https://cloud.r-project.org')"
-    Rscript -e "BiocManager::install('ggtree')"
-    Rscript -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"
+    Rscript --slave -e "install.packages(c('BiocManager', 'devtools'), dependencies=TRUE, repos='https://cloud.r-project.org', quiet=TRUE, verbose=FALSE)"
+    Rscript --slave -e "BiocManager::install('ggtree')"
+    Rscript --slave -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"
 
     # Install Trimmomatic
     mkdir -p /opt/trimmomatic
