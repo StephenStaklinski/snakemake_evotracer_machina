@@ -15,8 +15,8 @@ outdir = os.path.dirname(config['fastqDir'])
 rule all:
     input:
         f"{outdir}/evotracer_output/{mouseID}_evotracer.RData",
-        f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf"
-        # f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
+        f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf",
+        f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
         # "test.txt"
 
 rule runEvotracer:
@@ -61,27 +61,24 @@ rule plotEvotracerResults:
         # Rscript scripts/plotting_scripts/4_phylogenetic_analysis/06.1_tree_msa_bubble_all_clones.R {input.rDataObject} {outdir}
         """
 
-# rule runMachina:
-#     input:
-#         asvStat = outdir + "/evotracer_output/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
-#         nwk = outdir + "/evotracer_output/phylogeny_analysis/phylogeny_del_ins/tree_all_clones.newick",
-#     output:
-#         extendedMachina = outdir + "machina_output/" + mouseID + "_all_results_extended.txt",
-#         migrationMachina = outdir + "machina_output/" + mouseID + "_migration.txt",
-#         seedingMachina = outdir + "machina_output/" + mouseID + "_seeding_topology.txt"
-#     params:
-#         machinaScripts = "scripts/machina_scripts/",
-#         machinaOutPrefix = outdir + "machina_output/" + mouseID,
-#         primaryTissue = config['primaryTissue']
-#     conda:
-#         "envs/machina.yaml"
-#     shell:
-#         """
-#         Module load EBModules;
-#         Module load gurobi;
-
-#         scripts/machina_scripts/run_machina.sh --infile {input.asvStat} --tree {input.nwk} --scripts {params.machinaScripts} --prefix {params.machinaOutPrefix} --keep-first-cp
-#         """
+rule runMachina:
+    input:
+        asvStat = f"{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
+        nwk = f"{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/tree_all_clones.newick",
+    output:
+        extendedMachina = f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
+        migrationMachina = f"{outdir}/machina_output/{mouseID}_migration.txt",
+        seedingMachina = f"{outdir}/machina_output/{mouseID}_seeding_topology.txt"
+    params:
+        machinaScripts = "scripts/machina_scripts/",
+        machinaOutPrefix = f"{outdir}/machina_output/{mouseID}",
+        primaryTissue = config['primaryTissue']
+    conda:
+        "envs/machina.yaml"
+    shell:
+        """
+        scripts/machina_scripts/run_machina.sh --infile {input.asvStat} --tree {input.nwk} --primary-tissue {params.primaryTissue} --scripts {params.machinaScripts} --prefix {params.machinaOutPrefix} --keep-first-cp --threads 10 --batches 5
+        """
 
 # rule plotMachinaResults:
 #     input:

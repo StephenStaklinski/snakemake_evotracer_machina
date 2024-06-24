@@ -6,3 +6,7 @@ __default__:
 
 runEvotracer:
   cores: 10
+
+runMachina:
+  cores: 50
+  mem: '50G'

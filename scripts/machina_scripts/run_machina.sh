@@ -150,7 +150,11 @@ grep -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do echo "
 grep -v -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do echo "${MACHINA} -t ${THREADS} -m 3 -o ${l}_split -c ${l}_colors.txt -p ${PTISSUE} ${l}_tree_split.txt ${l}_labels_split.txt &> ${l}_split/results.txt";done >> ${PREFIX}_machina.cmd
 
 # run machina in parallel
+module load EBModules
+module load Gurobi
 ParaFly -CPU ${BATCHES} -c ${PREFIX}_machina.cmd
+module unload EBModules
+module unload Gurobi
 
 # parse results from each machina output dir
 grep -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do ${GETOLD} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}_all_results.txt
@@ -162,8 +166,8 @@ grep -v -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do ${G
 #mv ${PREFIX}_machina* ${PREFIX}_cp_output
 #mv ${PREFIX}_asv_sample_group.csv ${PREFIX}_cp_output
 #mv ${PREFIX}_CP_list.txt ${PREFIX}_cp_output
-## ANALYSE INFERRED TOPOLOGY
 
+## ANALYSE INFERRED TOPOLOGY
 python $TOPOLOGY ${PREFIX}_all_results.txt ${PTISSUE} > ${PREFIX}_seeding_topology.txt 
 python $MIGRATION ${PREFIX}_all_results.txt > ${PREFIX}_migration.txt
 
