@@ -173,7 +173,7 @@ python $ADD_INFO ${PREFIX}_migration.txt $ASV ${PREFIX}_all_results.txt > ${PREF
 # Clean up
 cd ..
 mkdir data
-mv ../*_cp_output data/
+mv *cp_output data/
 mv *CP_list.txt data/
 mv *all_results.txt data/
 mv *all_original_tree.txt data/
