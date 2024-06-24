@@ -278,18 +278,18 @@ bars_richness_per_cp <-
 # add theme
   barplot_nowaklab_theme() +
   theme(plot.margin = unit(c(1, 1, 1, 1), "mm"),
-        axis.line.y = element_line(colour="black", size=0.3), # axis y line only
-        axis.line.x.top = element_line(colour="black", size=0.3), # axis x line only
-        axis.line.x.bottom = element_line(colour="black", size=0.3), # axis x line only
+        axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
+        axis.line.x.top = element_line(colour="black", linewidth=0.3), # axis x line only
+        axis.line.x.bottom = element_line(colour="black", linewidth=0.3), # axis x line only
         panel.border = element_blank(), # disable panel border
-        panel.grid.major.x = element_line(size = 0.25, linetype = "dotted", colour = "#999999"),
+        panel.grid.major.x = element_line(linewidth = 0.25, linetype = "dotted", colour = "#999999"),
         panel.grid.minor = element_blank(), # disable lines in grid on X-axis
         axis.title.y = element_text(size=16),
         axis.title.x= element_text(size=16),
         axis.text.y = element_text(size=16, angle=0, hjust=1, vjust=0.5),
         axis.text.x = element_text(size=12, angle=45, hjust=0, vjust=0),
-        axis.ticks.x = element_line(colour="black", size=0.3),
-        axis.ticks.y = element_line(colour="black", size=0.3),
+        axis.ticks.x = element_line(colour="black", linewidth=0.3),
+        axis.ticks.y = element_line(colour="black", linewidth=0.3),
         strip.background=element_blank(), 
         strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12))
 
@@ -323,17 +323,17 @@ bars_count_per_sample_cp <-
   # add theme
   barplot_nowaklab_theme() +
   theme(plot.margin = unit(c(1, 1, 1, 1), "mm"),
-        axis.line.y = element_line(colour="black", size=0.3), # axis y line only
-        axis.line.x = element_line(colour="black", size=0.3), # axis x line only
+        axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
+        axis.line.x = element_line(colour="black", linewidth=0.3), # axis x line only
         panel.border = element_blank(), # disable panel border
-        panel.grid.major.x = element_line(size = 0.25, linetype = "dotted", colour = "#999999"),
+        panel.grid.major.x = element_line(linewidth = 0.25, linetype = "dotted", colour = "#999999"),
         panel.grid.minor = element_blank(), # disable lines in grid on X-axis
         axis.title.y = element_text(size=16),
         # axis.title.x = element_blank(),
         axis.text.y = element_text(size=16, angle=0, hjust=1, vjust=0.5),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.ticks.y = element_line(colour="black", size=0.3),
+        axis.ticks.y = element_line(colour="black", linewidth=0.3),
         strip.background=element_blank(), 
         strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12))
 
@@ -373,17 +373,17 @@ bars_sum_per_sample_cp_max_perc <-
   # add theme
   barplot_nowaklab_theme() +
   theme(plot.margin = unit(c(1, 1, 1, 1), "mm"),
-        axis.line.y = element_line(colour="black", size=0.3), # axis y line only
-        axis.line.x = element_line(colour="black", size=0.3), # axis x line only
+        axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
+        axis.line.x = element_line(colour="black", linewidth=0.3), # axis x line only
         panel.border = element_blank(), # disable panel border
-        panel.grid.major.x = element_line(size = 0.25, linetype = "dotted", colour = "#999999"),
+        panel.grid.major.x = element_line(linewidth = 0.25, linetype = "dotted", colour = "#999999"),
         panel.grid.minor = element_blank(), # disable lines in grid on X-axis
         axis.title.y = element_text(size=16),
         #axis.title.x = element_blank(),
         axis.text.y = element_text(size=16, angle=0, hjust=1, vjust=0.5),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.ticks.y = element_line(colour="black", size=0.3),
+        axis.ticks.y = element_line(colour="black", linewidth=0.3),
         strip.background=element_blank(), 
         strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12))
 
@@ -421,17 +421,17 @@ bars_shannons_per_cp <-
   # add theme
   barplot_nowaklab_theme() +
   theme(plot.margin = unit(c(1, 1, 1, 1), "mm"),
-        axis.line.y = element_line(colour="black", size=0.3), # axis y line only
-        axis.line.x = element_line(colour="black", size=0.3), # axis x line only
+        axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
+        axis.line.x = element_line(colour="black", linewidth=0.3), # axis x line only
         panel.border = element_blank(), # disable panel border
-        panel.grid.major.x = element_line(size = 0.25, linetype = "dotted", colour = "#999999"),
+        panel.grid.major.x = element_line(linewidth = 0.25, linetype = "dotted", colour = "#999999"),
         panel.grid.minor = element_blank(), # disable lines in grid on X-axis
         axis.title.y = element_text(size=16),
         # axis.title.x = element_blank(),
         axis.text.y = element_text(size=16, angle=0, hjust=1, vjust=0.5),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.ticks.y = element_line(colour="black", size=0.3),
+        axis.ticks.y = element_line(colour="black", linewidth=0.3),
         strip.background=element_blank(), 
         strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12))
 
@@ -447,17 +447,17 @@ bars_pielous_per_cp <-
 # add theme
   barplot_nowaklab_theme() +
   theme(plot.margin = unit(c(1, 1, 1, 1), "mm"),
-        axis.line.y = element_line(colour="black", size=0.3), # axis y line only
-        axis.line.x = element_line(colour="black", size=0.3), # axis x line only
+        axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
+        axis.line.x = element_line(colour="black", linewidth=0.3), # axis x line only
         panel.border = element_blank(), # disable panel border
-        panel.grid.major.x = element_line(size = 0.25, linetype = "dotted", colour = "#999999"),
+        panel.grid.major.x = element_line(linewidth = 0.25, linetype = "dotted", colour = "#999999"),
         panel.grid.minor = element_blank(), # disable lines in grid on X-axis
         axis.title.y = element_text(size=16),
         # axis.title.x = element_blank(),
         axis.text.y = element_text(size=16, angle=0, hjust=1, vjust=0.5),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.ticks.y = element_line(colour="black", size=0.3),
+        axis.ticks.y = element_line(colour="black", linewidth=0.3),
         strip.background=element_blank(), 
         strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12))
 
@@ -477,17 +477,17 @@ bars_dipsersal_score <-
   barplot_nowaklab_theme() +
   theme(plot.margin = unit(c(1, 1, 1, 1), "mm"),
         axis.ticks = element_blank(), # disable ticks lines
-        axis.line.y = element_line(colour="black", size=0.3), # axis y line only
-        axis.line.x = element_line(colour="black", size=0.3), # axis x line only
+        axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
+        axis.line.x = element_line(colour="black", linewidth=0.3), # axis x line only
         panel.border = element_blank(), # disable panel border
-        panel.grid.major.x = element_line(size = 0.25, linetype = "dotted", colour = "#999999"),
+        panel.grid.major.x = element_line(linewidth = 0.25, linetype = "dotted", colour = "#999999"),
         panel.grid.minor = element_blank(), # disable lines in grid on X-axis
         axis.title.y = element_text(size=16),
         axis.title.x= element_text(size=16),
         axis.text.y = element_text(size=16, angle=0, hjust=1, vjust=0.5),
         axis.text.x = element_text(size=12, angle=45, hjust=1, vjust=1),
-        axis.ticks.x = element_line(colour="black", size=0.3),
-        axis.ticks.y = element_line(colour="black", size=0.3),
+        axis.ticks.x = element_line(colour="black", linewidth=0.3),
+        axis.ticks.y = element_line(colour="black", linewidth=0.3),
         strip.background=element_blank(), 
         strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12))  
 
@@ -505,7 +505,7 @@ tiles_perc_per_sample_cp <-
   # add theme
   barplot_nowaklab_theme() +
   theme(plot.margin = unit(c(1, 1, 1, 1), "mm"),
-        axis.line.y = element_line(colour="black", size=0.3), # axis y line only
+        axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
         axis.line.x = element_blank(), # axis x line only
         panel.border = element_blank(), # disable panel border
         panel.grid.major = element_blank(), # disable lines in grid on X-axis
@@ -515,7 +515,7 @@ tiles_perc_per_sample_cp <-
         axis.text.y = element_text(size=16, angle=0, hjust=1, vjust=0.5),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.ticks.y = element_line(colour="black", size=0.3),
+        axis.ticks.y = element_line(colour="black", linewidth=0.3),
         strip.background=element_blank(), 
         strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12))
 

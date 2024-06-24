@@ -56,8 +56,8 @@ tree_phylo <-
 
 ###### output ######
 # create output subdir: for phylogeny analysis (alt. output_dir -> EvoTraceR_object$output_directory)
-if (!dir.exists(output_dir + "/evotracer_graphs")) 
-{dir.create(output_dir + "/evotracer_graphs", recursive = TRUE)}
+if (!dir.exists(paste0(output_dir, "/evotracer_graphs"))) 
+{dir.create(paste0(output_dir, "/evotracer_graphs"), recursive = TRUE)}
 
 ###### (1) adjust data for bubble plot (quantiles based) ######
 ## adjust based on quanties
@@ -206,8 +206,8 @@ ggtree_mp <-
   theme(plot.margin = unit(c(0, 0, 0, 0), "mm"),
         axis.text.y = element_blank(), # disable y axis text
         #axis.title.x = element_text(size=8, angle=0),
-        axis.ticks.x = element_line(colour="black", size=0.5),
-        axis.line.x = element_line(colour="black", size=0.5))
+        axis.ticks.x = element_line(colour="black", linewidth=0.5),
+        axis.line.x = element_line(colour="black", linewidth=0.5))
 
 
 ###### (3) adjust data for the plot msa ######
@@ -397,8 +397,8 @@ bubble <-
         axis.title.y = element_blank(), # disable y axis lines
         axis.text.y = element_blank(), # disable y axis text
         #axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-        panel.grid.major.y = element_line(colour="grey75", size=0.5, "dotted"), # y grid line 
-        panel.grid.major.x = element_line(colour="grey75", size=0.5, "dotted")) # disable lines in grid on X-axi
+        panel.grid.major.y = element_line(colour="grey75", linewidth=0.5, "dotted"), # y grid line 
+        panel.grid.major.x = element_line(colour="grey75", linewidth=0.5, "dotted")) # disable lines in grid on X-axi
 
 
 ##### (9) bubble size/color with quartiles ######
@@ -422,7 +422,7 @@ bubble_qnt <-
         axis.title.y = element_blank(), # disable y axis lines
         axis.text.y = element_blank(), # disable y axis text
         #axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-        panel.grid.major.y = element_line(colour="grey75", size=0.6, linetype="solid")) # y grid line 
+        panel.grid.major.y = element_line(colour="grey75", linewidth=0.6, linetype="solid")) # y grid line 
         #panel.grid.major.x = element_line(colour="grey75", size=0.5, linetype="dotted")) # disable lines in grid on X-axi
 
 
@@ -443,7 +443,7 @@ rtile <-
         axis.ticks.y = element_blank(), # disable y axis ticks lines
         axis.title.y = element_blank(), # disable y axis lines
         axis.text.y = element_blank(), # disable y axis text
-        panel.grid.major.y = element_line(colour="grey75", size=0.5, linetype="dotted"), # y grid line 
+        panel.grid.major.y = element_line(colour="grey75", linewidth=0.5, linetype="dotted"), # y grid line 
         #legend.position="none", 
         panel.background = element_rect(fill="white"))
         

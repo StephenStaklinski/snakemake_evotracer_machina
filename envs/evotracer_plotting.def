@@ -21,8 +21,8 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 
     # Install R packages from CRAN
     add-apt-repository ppa:c2d4u.team/c2d4u4.0+
-    apt-get install -y -qq --no-install-recommends r-cran-remotes r-cran-tidyverse r-cran-biocmanager r-cran-devtools r-cran-tidygraph r-cran-ggraph r-cran-ggthemes r-cran-ggrepel r-cran-ggtext r-cran-broom r-cran-igraph r-cran-graphlayouts r-cran-vegan r-cran-gridextra r-cran-circlize r-cran-upsetr r-cran-rcurl r-cran-viridis r-cran-ade4 r-cran-adegenet r-cran-phangorn r-cran-quadprog r-cran-phytools r-cran-readxl r-bioc-complexheatmap r-bioc-biomart r-bioc-phyloseq
-    Rscript --slave -e "install.packages(c('ggupset', 'ggnewscale', 'ggstance', 'lemon', 'scatterpie', 'pals', 'circlize', 'gridExtra', 'pacman', 'viridis', 'ade4', 'TreeTools', 'phytools', 'extrafont', 'betapart'), dependencies=TRUE, repos='http://cran.rstudio.com/', quiet=TRUE, verbose=FALSE)"
+    apt-get install -y -qq --no-install-recommends r-cran-remotes r-cran-tidyverse r-cran-biocmanager r-cran-devtools r-cran-tidygraph r-cran-ggraph r-cran-ggthemes r-cran-ggrepel r-cran-ggtext r-cran-broom r-cran-igraph r-cran-graphlayouts r-cran-vegan r-cran-gridextra r-cran-circlize r-cran-upsetr r-cran-rcurl r-cran-viridis r-cran-ade4 r-cran-adegenet r-cran-phangorn r-cran-quadprog r-cran-phytools r-cran-readxl r-bioc-complexheatmap r-bioc-biomart r-bioc-phyloseq r-cran-gtools
+    Rscript --slave -e "install.packages(c('statebins', 'ggupset', 'ggnewscale', 'ggstance', 'lemon', 'scatterpie', 'pals', 'circlize', 'gridExtra', 'pacman', 'viridis', 'ade4', 'TreeTools', 'phytools', 'extrafont', 'betapart'), dependencies=TRUE, repos='http://cran.rstudio.com/', quiet=TRUE, verbose=FALSE)"
     Rscript --slave -e "remotes::install_github('hrbrmstr/ggchicklet')"
     Rscript --slave -e "BiocManager::install(c('ggtree', 'phyloseq'))"
     Rscript --slave -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"

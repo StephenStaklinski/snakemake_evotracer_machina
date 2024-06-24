@@ -98,8 +98,8 @@ alt_count_bc <-
 # add theme
   theme(plot.margin = unit(c(1, 1, 1, 1), "mm"),
         axis.ticks = element_blank(), # disable ticks lines
-        axis.line.y = element_line(colour="black", size=0.3), # axis y line only
-        axis.line.x = element_line(colour="black", size=0.3), # axis x line only
+        axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
+        axis.line.x = element_line(colour="black", linewidth=0.3), # axis x line only
         panel.border = element_blank(), # disable panel border
         panel.grid.major = element_blank(), # disable lines in grid on X-axis
         panel.grid.minor = element_blank(), # disable lines in grid on X-axis
@@ -116,14 +116,13 @@ alt_count_bc <-
         panel.background = element_rect(fill="white")) 
 ## save pdf
 ggsave(plot=alt_count_bc, 
-       filename=file.path(graphs_analysis_dir, "hist_freq_indels.pdf"),
+       filename=paste0(graphs_analysis_dir, "/hist_freq_indels.pdf"),
        width=20, height=5*length(sample_order), units = "cm") 
 
 
 ##### csv data: save "hist_freq_indels.csv" ######
 write.csv(del_sub_ins_df_data_to_plot_sum_perc,  
-          file.path(graphs_analysis_dir, "hist_freq_indels.csv"),
+          paste0(graphs_analysis_dir, "/hist_freq_indels.csv"),
           row.names = FALSE, quote = FALSE)
-
 
 ### tuniec ###

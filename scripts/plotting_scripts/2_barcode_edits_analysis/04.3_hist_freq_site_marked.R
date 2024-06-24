@@ -101,8 +101,8 @@ bargraph_histo_sites <-
     bargraph_histo_sites + 
     theme(plot.margin = unit(c(2, 2, 2, 2), "mm"),
           axis.ticks = element_blank(), # disable ticks lines
-          axis.line.y = element_line(colour="black", size=0.3), # axis y line only
-          axis.line.x = element_line(colour="black", size=0.3), # axis x line only
+          axis.line.y = element_line(colour="black", linewidth=0.3), # axis y line only
+          axis.line.x = element_line(colour="black", linewidth=0.3), # axis x line only
           ### WiP ###
           #axis.line.x.top = element_blank(), # axis x line only
           #axis.ticks.x.top = element_blank(),
@@ -113,8 +113,8 @@ bargraph_histo_sites <-
           panel.grid.minor = element_blank(), # disable lines in grid on X-axis
           axis.text.y = element_text(size=10, angle=0, hjust=1, vjust=0.5),
           axis.text.x = element_text(size=10, angle=0, hjust=0.5, vjust=0.5),
-          axis.ticks.x = element_line(colour="black", size=0.3),
-          axis.ticks.y = element_line(colour="black", size=0.3),
+          axis.ticks.x = element_line(colour="black", linewidth=0.3),
+          axis.ticks.y = element_line(colour="black", linewidth=0.3),
           strip.background=element_blank(), 
           strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12),
           legend.position="bottom", legend.box = "horizontal", legend.text=element_text(size=12), legend.title=element_text(size=12),
