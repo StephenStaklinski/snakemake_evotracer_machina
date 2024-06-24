@@ -17,7 +17,7 @@ rule all:
         f"{outdir}/evotracer_output/{mouseID}_evotracer.RData",
         f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf",
         f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
-        f"{outdir}/machina_graphs/machina_migration_plots/trans_mx_all.pdf"
+        f"{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf"
 
 rule runEvotracer:
     input:
@@ -86,10 +86,10 @@ rule plotMachinaResults:
         migrationMachina = f"{outdir}/machina_output/{mouseID}_migration.txt",
         seedingMachina = f"{outdir}/machina_output/{mouseID}_seeding_topology.txt"
     output:
-        machinaRateMatrix = f"{outdir}/machina_graphs/machina_migration_plots/trans_mx_all.pdf",
-        machinaSeedTopology = f"{outdir}/machina_graphs/machina_seeding_topology/seed_topology_pie_per_cp_all.pdf",
+        machinaRateMatrix = f"{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf",
+        machinaSeedTopology = f"{outdir}/machina_output/machina_graphs/machina_seeding_topology/seed_topology_pie_per_cp_all.pdf",
     params:
-        machinaGraphsOutDir = f"{outdir}/machina_graphs"
+        machinaGraphsOutDir = f"{outdir}/machina_output/machina_graphs"
     singularity:
         "envs/evotracer_plotting.sif"
     shell:
