@@ -77,7 +77,7 @@ rule runMachina:
         "envs/machina.yaml"
     shell:
         """
-        scripts/machina_scripts/run_machina.sh --infile {input.asvStat} --tree {input.nwk} --primary-tissue {params.primaryTissue} --scripts {params.machinaScripts} --prefix {params.machinaOutPrefix} --keep-first-cp --threads 10 --batches 5
+        scripts/machina_scripts/run_machina.sh --infile {input.asvStat} --tree {input.nwk} --primary-tissue {params.primaryTissue} --scripts {params.machinaScripts} --prefix {params.machinaOutPrefix} --keep-first-cp --threads 25 --batches 4
         """
 
 # rule plotMachinaResults:

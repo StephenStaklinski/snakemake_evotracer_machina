@@ -104,12 +104,12 @@ fi
 
 mkdir ${PREFIX}_cp_output
 cd ${PREFIX}_cp_output
-# Extract key ASV columns
-#asv_names,sample,group
+# Extract key ASV columns (asv_names,sample,group)
 cut -d',' -f1,2,30 ${ASV} | grep -v "$REFERENCE"| sed '/^$/d' > ${PREFIX}_asv_sample_group.csv
 # exclude miscelleneaous group CP00
 if [ "$KEEP" = true ] ; then
     remove="^$"
+    ###remove="^CP01$" ### ONLY FOR TESTING TO REMOVE CP01 FOR SPEED
 else
     # remove CP0, which can be zero padded, e.g. "CP00", thus we sort
     first_cp=`cut -f3 -d',' ${PREFIX}_asv_sample_group.csv|tail -n +2| sort| head -1`
@@ -140,7 +140,6 @@ done<${PREFIX}_CP_list.txt
 while read l; do mkdir ${l}_split;done<${PREFIX}_CP_list.txt
    
 # prepare input for selection scan on original tree
-#mkdir ${PREFIX}_cp_output
 for l in *_tree_split.txt; do cat $l |sed "s/^/${l} tree /"| sed 's/_tree_split.txt//';done | grep -v "$remove" > ${PREFIX}_all_original_tree.txt
 
 ## RUN MACHINA ##     
@@ -160,13 +159,6 @@ module unload Gurobi
 grep -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do ${GETOLD} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}_all_results.txt
 grep -v -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do ${GET} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}_all_results.txt
 
-# move intermediate output
-#mv CP* ${PREFIX}_cp_output
-#mv ${PREFIX}_big_CP_list.txt ${PREFIX}_cp_output
-#mv ${PREFIX}_machina* ${PREFIX}_cp_output
-#mv ${PREFIX}_asv_sample_group.csv ${PREFIX}_cp_output
-#mv ${PREFIX}_CP_list.txt ${PREFIX}_cp_output
-
 ## ANALYSE INFERRED TOPOLOGY
 python $TOPOLOGY ${PREFIX}_all_results.txt ${PTISSUE} > ${PREFIX}_seeding_topology.txt 
 python $MIGRATION ${PREFIX}_all_results.txt > ${PREFIX}_migration.txt
@@ -179,8 +171,12 @@ python $SELECTION ${PREFIX}_all_original_tree.txt $ASV| grep "^expansion" > ${PR
 python $ADD_INFO ${PREFIX}_migration.txt $ASV ${PREFIX}_all_results.txt > ${PREFIX}_all_results_extended.txt
 
 # Clean up
-mkdir data
-mv CP* data/
-mv *list.txt data/
-mv *cmd* data/
 cd ..
+mkdir data
+mv ../*_cp_output data/
+mv *CP_list.txt data/
+mv *all_results.txt data/
+mv *all_original_tree.txt data/
+mv *asv_sample_group.csv data/
+mv *.cmd data/
+mv *.cmd.completed data/
