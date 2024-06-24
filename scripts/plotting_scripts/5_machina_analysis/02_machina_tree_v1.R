@@ -2,9 +2,9 @@
 ###### script drawing tree graph based on MACHINA ######
 ########################################################
 
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.1_libs.R")
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.3_graphics.R")
+source("scripts/plotting_scripts/1_utils/01.1_libs.R")
+source("scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
+source("scripts/plotting_scripts/1_utils/01.3_graphics.R")
 
 args = commandArgs(trailingOnly=TRUE)
 

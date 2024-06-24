@@ -1,9 +1,9 @@
 #######################################################################
 ###### script drawing seeding topology patterns based on MACHINA ######
 #######################################################################
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.1_libs.R")
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
-source("~/snakemake_evotracer_machina/scripts/plotting_scripts/1_utils/01.3_graphics.R")
+source("scripts/plotting_scripts/1_utils/01.1_libs.R")
+source("scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
+source("scripts/plotting_scripts/1_utils/01.3_graphics.R")
 
 args = commandArgs(trailingOnly=TRUE)
 
@@ -318,7 +318,7 @@ machina_per_topology_bin_stat_tiles_bargraph_row_col <- aplot::insert_top(machin
 #    theme(plot.margin = unit(c(2, 2, 2, 2), "mm"),
 #          axis.ticks = element_blank(), # disable ticks lines
 #          axis.line.x = element_blank(), # axis y line only
-#          axis.line.y = element_line(colour="black", size=0.3), # axis x line only
+#          axis.line.y = element_line(colour="black", linewidth=0.3), # axis x line only
 #          ### WiP ###
 #          axis.line.x.top = element_blank(), # axis x line only
 #          axis.ticks.x.top = element_blank(),
@@ -328,7 +328,7 @@ machina_per_topology_bin_stat_tiles_bargraph_row_col <- aplot::insert_top(machin
 #          panel.grid.major = element_blank(), # disable lines in grid on X-axis
 #          panel.grid.minor = element_blank(), # disable lines in grid on X-axis
 #          axis.text.x = element_text(margin=margin(-3, 0, 0, 0), size=8, hjust=0.5, vjust=0.5),
-#          axis.ticks.y = element_line(colour="black", size=0.3),
+#          axis.ticks.y = element_line(colour="black", linewidth=0.3),
 #          axis.ticks.x = element_blank(),
 #          strip.background=element_blank(),
 #          strip.text.x = element_text(size = 12), strip.text.y = element_text(size = 12),

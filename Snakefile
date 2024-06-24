@@ -17,7 +17,7 @@ rule all:
         f"{outdir}/evotracer_output/{mouseID}_evotracer.RData",
         f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf",
         f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
-        # "test.txt"
+        f"{outdir}/machina_graphs/machina_migration_plots/trans_mx_all.pdf"
 
 rule runEvotracer:
     input:
@@ -80,22 +80,23 @@ rule runMachina:
         scripts/machina_scripts/run_machina.sh --infile {input.asvStat} --tree {input.nwk} --primary-tissue {params.primaryTissue} --scripts {params.machinaScripts} --prefix {params.machinaOutPrefix} --keep-first-cp --threads 25 --batches 4
         """
 
-# rule plotMachinaResults:
-#     input:
-#         extendedMachina = outdir + "machina_output/" + mouseID + "_all_results_extended.txt",
-#         migrationMachina = outdir + "machina_output/" + mouseID + "_migration.txt",
-#         seedingMachina = outdir + "machina_output/" + mouseID + "_seeding_topology.txt",
-#     output:
-#         "test.txt"
-#     params:
-#         machinaOutDir = outdir + "machina_output"
-#     singularity:
-#         "envs/evotracer.sif"
-#     shell:
-#         """
-#         Rscript scripts/plotting_scripts/5_machina_analysis/02_machina_tree_v1.R {input.extendedMachina} {params.machinaOutDir};
+rule plotMachinaResults:
+    input:
+        extendedMachina = f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
+        migrationMachina = f"{outdir}/machina_output/{mouseID}_migration.txt",
+        seedingMachina = f"{outdir}/machina_output/{mouseID}_seeding_topology.txt"
+    output:
+        machinaRateMatrix = f"{outdir}/machina_graphs/machina_migration_plots/trans_mx_all.pdf",
+        machinaSeedTopology = f"{outdir}/machina_graphs/machina_seeding_topology/seed_topology_pie_per_cp_all.pdf",
+    params:
+        machinaGraphsOutDir = f"{outdir}/machina_graphs"
+    singularity:
+        "envs/evotracer_plotting.sif"
+    shell:
+        """
+        #Rscript scripts/plotting_scripts/5_machina_analysis/02_machina_tree_v1.R {input.extendedMachina} {params.machinaGraphsOutDir};
 
-#         Rscript scripts/plotting_scripts/5_machina_analysis/03_machina_migration_v1.R {input.migrationMachina} {params.machinaOutDir};
+        Rscript scripts/plotting_scripts/5_machina_analysis/03_machina_migration_v1.R {input.migrationMachina} {params.machinaGraphsOutDir};
 
-#         Rscript scripts/plotting_scripts/5_machina_analysis/04_machina_seeding_topology_v1.R {input.seedingMachina} {params.machinaOutDir}
-#         """
+        Rscript scripts/plotting_scripts/5_machina_analysis/04_machina_seeding_topology_v1.R {input.seedingMachina} {params.machinaGraphsOutDir};
+        """
