@@ -2,8 +2,8 @@
 ## Plots show peaks centered around edit sites (green dashed line). Edits will be deletions (blue) and insertions (red).
 ## Created Files: hist_freq_indels.pdf 
 source("scripts/plotting_scripts/1_utils/01.1_libs.R")
-source("scripts/1_utils/01.2_own_funct_softw.R")
-source("scripts/1_utils/01.3_graphics.R")
+source("scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
+source("scripts/plotting_scripts/1_utils/01.3_graphics.R")
 
 args = commandArgs(trailingOnly=TRUE)
 load(args[1])
