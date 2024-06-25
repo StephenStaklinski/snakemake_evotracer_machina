@@ -11,7 +11,6 @@ args = commandArgs(trailingOnly=TRUE)
 #input_dir <- system.file("extdata", "input", package = "EvoTraceR")
 input_dir <- args[1]
 output_dir <- args[2]
-mouseID <- args[3]
 
 # unzip files
 # List all files in the directory
@@ -73,4 +72,4 @@ EvoTraceR_object <-
 EvoTraceR_object <-
   create_df_summary(EvoTraceR_object)
 
-save.image(paste0(output_dir, "/", mouseID, "_", "evotracer.RData"))
+save.image(paste0(output_dir, "/", "evotracer.RData"))

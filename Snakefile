@@ -1,77 +1,77 @@
-import os
+import os, sys
 from glob import glob
 from numpy import unique
 
-paths = glob('{}/*'.format(config['fastqDir']))
-reads = [path for path in paths if os.path.isfile(path)]
-if len(reads) == 0:
-    raise ValueError("No fastq files found in the input directory.")
-mouseID = os.path.basename(reads[0]).split("_")[0]
-tissues = unique([os.path.basename(path).split("_")[1] for path in reads])
-sample = os.path.basename(reads[0]).split("_")[-2]
-outdir = os.path.dirname(config['fastqDir'])
-
+outDirs = []
+outdir_to_fastqdir = {}
+for fastqDir in config['fastqDirs']:
+    paths = glob('{}/*'.format(fastqDir))
+    reads = [path for path in paths if os.path.isfile(path)]
+    if len(reads) == 0:
+        raise ValueError("No fastq files found in the input directory {fastqDir}.")
+    outd = os.path.dirname(fastqDir)
+    outDirs.append(outd)
+    outdir_to_fastqdir[outd] = fastqDir
 
 rule all:
     input:
-        f"{outdir}/evotracer_output/{mouseID}_evotracer.RData",
-        f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf",
-        f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
-        f"{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf"
+        expand("{outdir}/evotracer_output/evotracer.RData", outdir = outDirs),
+        expand("{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf", outdir = outDirs),
+        expand("{outdir}/machina_output/all_results_extended.txt", outdir = outDirs),
+        expand("{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf", outdir = outDirs)
 
 rule runEvotracer:
-    input:
-        expand(config['fastqDir'] + '/{id}_{tissue}_BC10v0_MG_{sample}_R1.fastq', id=mouseID, tissue=tissues, sample=sample),
-        expand(config['fastqDir'] + '/{id}_{tissue}_BC10v0_MG_{sample}_R2.fastq', id=mouseID, tissue=tissues, sample=sample)
     output:
-        asvStat = f"{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
-        nwk = f"{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/tree_all_clones.newick",
-        rDataObject = f"{outdir}/evotracer_output/{mouseID}_evotracer.RData"
+        asvStat = "{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
+        nwk = "{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/tree_all_clones.newick",
+        rDataObject = "{outdir}/evotracer_output/evotracer.RData",
     params:
-        fastqDir = config['fastqDir'],
-        evoOutDir = outdir + "/evotracer_output"
+        evoFastqDir = "{outdir}/{config['fastqDirPrefix']}",
+        evoOutDir = "{outdir}/evotracer_output"
     singularity:
         'envs/evotracer.sif'
     shell:
         """
-        Rscript scripts/evotracer_scripts/evotracer.R {params.fastqDir} {params.evoOutDir} {mouseID}
+        Rscript scripts/evotracer_scripts/evotracer.R {params.evoFastqDir} {params.evoOutDir}
         """
 
 rule plotEvotracerResults:
     input:
-        rDataObject = f"{outdir}/evotracer_output/{mouseID}_evotracer.RData"
+        rDataObject = "{outdir}/evotracer_output/evotracer.RData",
     output:
-        indels = f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf",
-        seqLen = f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_seq_length.pdf",
-        histFreq = f"{outdir}/evotracer_output/evotracer_graphs/hist_freq_site_affected.pdf",
-        # cpStats = f"{outdir}/evotracer_output/evotracer_graphs/stat_cps_dispersal_bargraph_hm.pdf",
-        # cpTree = f"{outdir}/evotracer_output/evotracer_graphs/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf"
+        indels = "{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf",
+        seqLen = "{outdir}/evotracer_output/evotracer_graphs/hist_freq_seq_length.pdf",
+        histFreq = "{outdir}/evotracer_output/evotracer_graphs/hist_freq_site_affected.pdf",
+        # cpStats = "{outdir}/evotracer_output/evotracer_graphs/stat_cps_dispersal_bargraph_hm.pdf",
+        # cpTree = "{outdir}/evotracer_output/evotracer_graphs/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf"
+    params:
+        evoPlotsOutDir = "{outdir}/evotracer_output/evotracer_graphs"
     singularity:
         "envs/evotracer_plotting.sif"
     shell:
         """
-        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.1_hist_freq_indels.R {input.rDataObject} {outdir};
+        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.1_hist_freq_indels.R {input.rDataObject} {params.evoPlotsOutDir};
 
-        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.2_hist_freq_seq_length.R {input.rDataObject} {outdir};
+        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.2_hist_freq_seq_length.R {input.rDataObject} {params.evoPlotsOutDir};
 
-        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.3_hist_freq_site_marked.R {input.rDataObject} {outdir};
+        Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.3_hist_freq_site_marked.R {input.rDataObject} {params.evoPlotsOutDir};
 
-        # Rscript scripts/plotting_scripts/3_clonal_population_analysis/05.1_cp_stat_vis.R {input.rDataObject} {outdir};
+        # Rscript scripts/plotting_scripts/3_clonal_population_analysis/05.1_cp_stat_vis.R {input.rDataObject} {params.evoPlotsOutDir};
 
-        # Rscript scripts/plotting_scripts/4_phylogenetic_analysis/06.1_tree_msa_bubble_all_clones.R {input.rDataObject} {outdir}
+        # Rscript scripts/plotting_scripts/4_phylogenetic_analysis/06.1_tree_msa_bubble_all_clones.R {input.rDataObject} {params.evoPlotsOutDir}
         """
 
 rule runMachina:
     input:
-        asvStat = f"{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
-        nwk = f"{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/tree_all_clones.newick",
+        asvStat = "{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
+        nwk = "{outdir}/evotracer_output/phylogeny_analysis/phylogeny_del_ins/tree_all_clones.newick",
     output:
-        extendedMachina = f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
-        migrationMachina = f"{outdir}/machina_output/{mouseID}_migration.txt",
-        seedingMachina = f"{outdir}/machina_output/{mouseID}_seeding_topology.txt"
+        extendedMachina = "{outdir}/machina_output/all_results_extended.txt",
+        migrationMachina = "{outdir}/machina_output/migration.txt",
+        seedingMachina = "{outdir}/machina_output/seeding_topology.txt"
     params:
         machinaScripts = "scripts/machina_scripts/",
-        machinaOutPrefix = f"{outdir}/machina_output/{mouseID}",
+        machinaOutPrefix = "{outdir}/machina_output",
         primaryTissue = config['primaryTissue']
     conda:
         "envs/machina.yaml"
@@ -82,14 +82,14 @@ rule runMachina:
 
 rule plotMachinaResults:
     input:
-        extendedMachina = f"{outdir}/machina_output/{mouseID}_all_results_extended.txt",
-        migrationMachina = f"{outdir}/machina_output/{mouseID}_migration.txt",
-        seedingMachina = f"{outdir}/machina_output/{mouseID}_seeding_topology.txt"
+        extendedMachina = "{outdir}/machina_output/all_results_extended.txt",
+        migrationMachina = "{outdir}/machina_output/migration.txt",
+        seedingMachina = "{outdir}/machina_output/seeding_topology.txt"
     output:
-        machinaRateMatrix = f"{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf",
-        machinaSeedTopology = f"{outdir}/machina_output/machina_graphs/machina_seeding_topology/seed_topology_pie_per_cp_all.pdf",
+        machinaRateMatrix = "{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf",
+        machinaSeedTopology = "{outdir}/machina_output/machina_graphs/machina_seeding_topology/seed_topology_pie_per_cp_all.pdf",
     params:
-        machinaGraphsOutDir = f"{outdir}/machina_output/machina_graphs"
+        machinaGraphsOutDir = "{outdir}/machina_output/machina_graphs"
     singularity:
         "envs/evotracer_plotting.sif"
     shell:

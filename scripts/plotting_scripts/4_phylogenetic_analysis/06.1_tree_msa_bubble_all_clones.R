@@ -56,8 +56,8 @@ tree_phylo <-
 
 ###### output ######
 # create output subdir: for phylogeny analysis (alt. output_dir -> EvoTraceR_object$output_directory)
-if (!dir.exists(paste0(output_dir, "/evotracer_graphs"))) 
-{dir.create(paste0(output_dir, "/evotracer_graphs"), recursive = TRUE)}
+if (!dir.exists(output_dir))
+{dir.create(output_dir, recursive = TRUE)}
 
 ###### (1) adjust data for bubble plot (quantiles based) ######
 ## adjust based on quanties
@@ -480,7 +480,7 @@ msa_cna_bc_bubble_qnt_ggtree_mp <- print(msa_cna_bc_bubble_qnt_ggtree_mp) & them
 
 
 ## for publication and presentations
-ggsave(filename=output_dir + "/evotracer_graphs/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf",plot=msa_cna_bc_bubble_qnt_ggtree_mp,width=50, height=dim(tree_df)[1]*0.7, units = "cm", limitsize = FALSE)} else {
+ggsave(filename=output_dir + "/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf",plot=msa_cna_bc_bubble_qnt_ggtree_mp,width=50, height=dim(tree_df)[1]*0.7, units = "cm", limitsize = FALSE)} else {
 
 ### tuniec ###
 

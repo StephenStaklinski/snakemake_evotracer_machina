@@ -3,6 +3,7 @@
 export REPO_PATH=/grid/siepel/home_norepl/staklins/snakemake_evotracer_machina
 
 snakemake \
+--dry-run \
 --use-singularity \
 --use-conda \
 --snakefile $REPO_PATH/Snakefile \

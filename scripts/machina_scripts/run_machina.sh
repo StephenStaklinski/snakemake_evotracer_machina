@@ -97,78 +97,78 @@ if [[ -n "${BIG_CP_THRESHOLD//[0-9]/}" ]]; then
     exit
 fi
 
-if [ -d "${PREFIX}_cp_output" ]; then
-  echo "Output directory ${PREFIX}_cp_output already exist. Exiting!"
+if [ -d "${PREFIX}/cp_output" ]; then
+  echo "Output directory ${PREFIX}/cp_output already exist. Exiting!"
   exit
 fi
 
-mkdir ${PREFIX}_cp_output
-cd ${PREFIX}_cp_output
+mkdir ${PREFIX}/cp_output
+cd ${PREFIX}/cp_output
 # Extract key ASV columns (asv_names,sample,group)
-cut -d',' -f1,2,30 ${ASV} | grep -v "$REFERENCE"| sed '/^$/d' > ${PREFIX}_asv_sample_group.csv
+cut -d',' -f1,2,30 ${ASV} | grep -v "$REFERENCE"| sed '/^$/d' > ${PREFIX}/asv_sample_group.csv
 # exclude miscelleneaous group CP00
 if [ "$KEEP" = true ] ; then
     remove="^$"
     ###remove="^CP01$" ### ONLY FOR TESTING TO REMOVE CP01 FOR SPEED
 else
     # remove CP0, which can be zero padded, e.g. "CP00", thus we sort
-    first_cp=`cut -f3 -d',' ${PREFIX}_asv_sample_group.csv|tail -n +2| sort| head -1`
+    first_cp=`cut -f3 -d',' ${PREFIX}/asv_sample_group.csv|tail -n +2| sort| head -1`
     remove="^${first_cp}$"
 fi
 # if a CP only includes the reference, exclude it
-cut -f3 -d',' ${PREFIX}_asv_sample_group.csv|tail -n +2| sort| uniq | egrep -v "$remove"| sed '/^$/d' > ${PREFIX}_CP_list.txt
+cut -f3 -d',' ${PREFIX}/asv_sample_group.csv|tail -n +2| sort| uniq | egrep -v "$remove"| sed '/^$/d' > ${PREFIX}/CP_list.txt
 # if its empty, then exit
-if [ ! -s ${PREFIX}_CP_list.txt ]; then
+if [ ! -s ${PREFIX}/CP_list.txt ]; then
     echo "No CPs found or all CPs removed after filtering. Exiting!"
     exit
 fi
 
 # prepare machina input files for each CP
-touch ${PREFIX}_big_CP_list.txt
+touch ${PREFIX}/big_CP_list.txt
 while read l; do
-    ${TRAV} ${TREE} ${PREFIX}_asv_sample_group.csv ${l} ${PTISSUE}
+    ${TRAV} ${TREE} ${PREFIX}/asv_sample_group.csv ${l} ${PTISSUE}
     num_labels=`sed -n '$=' ${l}_labels_split.txt`
     if [[ $num_labels -gt $BIG_CP_THRESHOLD ]]; then
     #if [ "$num_labels" -gt 30 ]; then
-        echo ${l} >> ${PREFIX}_big_CP_list.txt
+        echo ${l} >> ${PREFIX}/big_CP_list.txt
     fi
-done<${PREFIX}_CP_list.txt
+done<${PREFIX}/CP_list.txt
 # remove CPs that failed traversal due to unexpected clade topology
-#grep -v -f FailedCP.txt ${PREFIX}_CP_list.txt > ${PREFIX}_CP_list.tmp
-#mv ${PREFIX}_CP_list.tmp ${PREFIX}_CP_list.txt
+#grep -v -f FailedCP.txt ${PREFIX}/CP_list.txt > ${PREFIX}/CP_list.tmp
+#mv ${PREFIX}/CP_list.tmp ${PREFIX}_CP/list.txt
 # make output directory for each CP
-while read l; do mkdir ${l}_split;done<${PREFIX}_CP_list.txt
+while read l; do mkdir ${l}_split;done<${PREFIX}/CP_list.txt
    
 # prepare input for selection scan on original tree
-for l in *_tree_split.txt; do cat $l |sed "s/^/${l} tree /"| sed 's/_tree_split.txt//';done | grep -v "$remove" > ${PREFIX}_all_original_tree.txt
+for l in *_tree_split.txt; do cat $l |sed "s/^/${l} tree /"| sed 's/_tree_split.txt//';done | grep -v "$remove" > ${PREFIX}/all_original_tree.txt
 
 ## RUN MACHINA ##     
 # make command file for machina
 # speed up MACHINA a bit by adding "-m 3"
-grep -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do echo "${MACHINA} -OLD -t ${THREADS} -m 3 -o ${l}_split -c ${l}_colors.txt -p ${PTISSUE} ${l}_tree_split.txt ${l}_labels_split.txt &> ${l}_split/results.txt";done >> ${PREFIX}_machina.cmd
-grep -v -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do echo "${MACHINA} -t ${THREADS} -m 3 -o ${l}_split -c ${l}_colors.txt -p ${PTISSUE} ${l}_tree_split.txt ${l}_labels_split.txt &> ${l}_split/results.txt";done >> ${PREFIX}_machina.cmd
+grep -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do echo "${MACHINA} -OLD -t ${THREADS} -m 3 -o ${l}_split -c ${l}_colors.txt -p ${PTISSUE} ${l}_tree_split.txt ${l}_labels_split.txt &> ${l}_split/results.txt";done >> ${PREFIX}/machina.cmd
+grep -v -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do echo "${MACHINA} -t ${THREADS} -m 3 -o ${l}_split -c ${l}_colors.txt -p ${PTISSUE} ${l}_tree_split.txt ${l}_labels_split.txt &> ${l}_split/results.txt";done >> ${PREFIX}/machina.cmd
 
 # run machina in parallel
 module load EBModules
 module load Gurobi
-ParaFly -CPU ${BATCHES} -c ${PREFIX}_machina.cmd
+ParaFly -CPU ${BATCHES} -c ${PREFIX}/machina.cmd
 module unload EBModules
 module unload Gurobi
 
 # parse results from each machina output dir
-grep -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do ${GETOLD} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}_all_results.txt
-grep -v -f ${PREFIX}_big_CP_list.txt ${PREFIX}_CP_list.txt| while read l; do ${GET} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}_all_results.txt
+grep -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do ${GETOLD} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}/all_results.txt
+grep -v -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do ${GET} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}/all_results.txt
 
 ## ANALYSE INFERRED TOPOLOGY
-python $TOPOLOGY ${PREFIX}_all_results.txt ${PTISSUE} > ${PREFIX}_seeding_topology.txt 
-python $MIGRATION ${PREFIX}_all_results.txt > ${PREFIX}_migration.txt
+python $TOPOLOGY ${PREFIX}/all_results.txt ${PTISSUE} > ${PREFIX}/seeding_topology.txt 
+python $MIGRATION ${PREFIX}/all_results.txt > ${PREFIX}/migration.txt
 
 ## ANALYSE SELECTION ON ORIGINAL AND MACHINA TOPOLOGY
 
-#python $SELECTION ${PREFIX}_cp_output/${PREFIX}_all_results.txt $ASV > ${PREFIX}_cp_output/${PREFIX}_selection.txt
-python $SELECTION ${PREFIX}_all_original_tree.txt $ASV| grep "^test" > ${PREFIX}_selection_original_test.txt
-python $SELECTION ${PREFIX}_all_original_tree.txt $ASV| grep "^expansion" > ${PREFIX}_selection_original_expansion.txt
-python $ADD_INFO ${PREFIX}_migration.txt $ASV ${PREFIX}_all_results.txt > ${PREFIX}_all_results_extended.txt
+#python $SELECTION ${PREFIX}/cp_output/${PREFIX}/all_results.txt $ASV > ${PREFIX}/cp_output/${PREFIX}/selection.txt
+python $SELECTION ${PREFIX}/all_original_tree.txt $ASV| grep "^test" > ${PREFIX}/selection_original_test.txt
+python $SELECTION ${PREFIX}/all_original_tree.txt $ASV| grep "^expansion" > ${PREFIX}/selection_original_expansion.txt
+python $ADD_INFO ${PREFIX}/migration.txt $ASV ${PREFIX}/all_results.txt > ${PREFIX}/all_results_extended.txt
 
 # Clean up
 cd ..

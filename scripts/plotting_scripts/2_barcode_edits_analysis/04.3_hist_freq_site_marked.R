@@ -16,7 +16,7 @@ histo_sites_start <-
 
 ###### data outputs ######
 # output dir: for graphs analysis
-graphs_analysis_dir <- paste0(output_dir, "/evotracer_graphs")
+graphs_analysis_dir <- output_dir
 if (!dir.exists(graphs_analysis_dir)) 
 {dir.create(graphs_analysis_dir, recursive = TRUE)}
 
