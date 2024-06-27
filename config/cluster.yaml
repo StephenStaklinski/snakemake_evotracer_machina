@@ -8,5 +8,5 @@ runEvotracer:
   cores: 10
 
 runMachina:
-  cores: 100
+  cores: 50
   mem: '10G'
