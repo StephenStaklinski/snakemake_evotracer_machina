@@ -14,9 +14,12 @@ for fastqDir in config['fastqDirs']:
 rule all:
     input:
         expand("{outdir}/evotracer_output/evotracer.RData", outdir = outDirs),
-        expand("{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf", outdir = outDirs),
+        expand("{outdir}/evotracer_output/hist_freq_indels.pdf", outdir = outDirs),
+        expand("{outdir}/evotracer_output/stat_cps_dispersal_bargraph_hm.pdf", outdir = outDirs),
+        expand("{outdir}/evotracer_output/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf", outdir = outDirs),
         expand("{outdir}/machina_output/all_results_extended.txt", outdir = outDirs),
-        expand("{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf", outdir = outDirs)
+        expand("{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf", outdir = outDirs),
+        expand("{outdir}/machina_output/machina_graphs/machina_tree_plots/CP01_machina_tree_graph.pdf", outdir = outDirs)
 
 rule runEvotracer:
     input:
@@ -38,7 +41,9 @@ rule plotEvotracerResults:
     input:
         rDataObject = "{outdir}/evotracer_output/evotracer.RData",
     output:
-        indels = "{outdir}/evotracer_output/evotracer_graphs/hist_freq_indels.pdf"
+        indels = "{outdir}/evotracer_output/hist_freq_indels.pdf",
+        dispersal = "{outdir}/evotracer_output/stat_cps_dispersal_bargraph_hm.pdf",
+        phylo = "{outdir}/evotracer_output/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf",
     params:
         evoPlotsOutDir = lambda wildcards: "{}/evotracer_output/evotracer_graphs".format(wildcards.outdir)
     singularity:
@@ -51,9 +56,9 @@ rule plotEvotracerResults:
 
         Rscript scripts/plotting_scripts/2_barcode_edits_analysis/04.3_hist_freq_site_marked.R {input.rDataObject} {params.evoPlotsOutDir};
 
-        # Rscript scripts/plotting_scripts/3_clonal_population_analysis/05.1_cp_stat_vis.R {input.rDataObject} {params.evoPlotsOutDir};
+        Rscript scripts/plotting_scripts/3_clonal_population_analysis/05.1_cp_stat_vis.R {input.rDataObject} {params.evoPlotsOutDir};
 
-        # Rscript scripts/plotting_scripts/4_phylogenetic_analysis/06.1_tree_msa_bubble_all_clones.R {input.rDataObject} {params.evoPlotsOutDir}
+        Rscript scripts/plotting_scripts/4_phylogenetic_analysis/06.1_tree_msa_bubble_all_clones.R {input.rDataObject} {params.evoPlotsOutDir}
         """
 
 rule runMachina:
@@ -84,13 +89,14 @@ rule plotMachinaResults:
         seedingMachina = "{outdir}/machina_output/seeding_topology.txt"
     output:
         machinaRateMatrix = "{outdir}/machina_output/machina_graphs/machina_migration_plots/trans_mx_all.pdf",
+        machinaTree = "{outdir}/machina_output/machina_graphs/machina_tree_plots/CP01_machina_tree_graph.pdf",
     params:
         machinaGraphsOutDir = lambda wildcards: "{}/machina_output/machina_graphs".format(wildcards.outdir)
     singularity:
         "envs/evotracer_plotting.sif"
     shell:
         """
-        #Rscript scripts/plotting_scripts/5_machina_analysis/02_machina_tree_v1.R {input.extendedMachina} {params.machinaGraphsOutDir};
+        Rscript scripts/plotting_scripts/5_machina_analysis/02_machina_tree_v1.R {input.extendedMachina} {params.machinaGraphsOutDir};
 
         Rscript scripts/plotting_scripts/5_machina_analysis/03_machina_migration_v1.R {input.migrationMachina} {params.machinaGraphsOutDir};
 

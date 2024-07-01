@@ -5,7 +5,7 @@
 source("scripts/plotting_scripts/1_utils/01.1_libs.R")
 source("scripts/plotting_scripts/1_utils/01.2_own_funct_softw.R")
 source("scripts/plotting_scripts/1_utils/01.3_graphics.R")
-
+print("Libraries loaded")
 args = commandArgs(trailingOnly=TRUE)
 
 infile <- args[1]
@@ -90,6 +90,7 @@ machina_graph_df <-
   mutate(CP=as.factor(CP)) %>% 
   mutate(sample=as.factor(sample))
 
+print("Start plotting tree/graph")
 ###### visualization of tree/graph ###### 
 ### adjustments for strength scale ("Reds")
 # max scale
@@ -100,43 +101,45 @@ seq_transition_probability <- seq(0.2, from=0, to=max_transition_probability)
 # tree ggraph
 machina_tree_graph <-
   ggraph(machina_graph_df, layout="tree") + 
+  geom_edge_diagonal() +
+  geom_node_point(aes(color = sample)) +
   
-  ## edges (1): transitions weight assigned to edges
-  geom_edge_diagonal(aes(color=transition_probability), flipped=FALSE,
-                     edge_width=unit(0.25, "mm"), strength=0.8, arrow = arrow(length = unit(0.75, "mm"), ends = "last", type = "closed", angle = 45), start_cap = circle(1.0, "mm"), end_cap = circle(2.00, "mm")) +
-  # map color to of strength to edges
-  scale_edge_colour_distiller(type = "seq", palette = "Reds", direction = 1,
-                              #breaks=c(0, 0.25, 0.50, 0.75, 1.00), limits=c(0.00, 0.50), # the same scales for all CPs
-                              breaks=seq_transition_probability, limits=c(0.00, max_transition_probability), # specific scale for CP
-                              na.value = "grey50", name = "Seeding Strength (Edges):   ",
-                              guide = guide_edge_colorbar(direction = "horizontal",
-                                                          title.position = "left",
-                                                          title.hjust = 0, title.vjust = 0.5,
-                                                          ticks = TRUE, label = TRUE, ticks.colour = "white",
-                                                          label.hjust = 0.5, label.vjust = 0.5,
-                                                          label.position = "bottom",
-                                                          label.theme = element_text(colour = "black", size=7),
-                                                          frame.colour = "transparent", barwidth = 7, barheight = 0.5)) +
+  # ## edges (1): transitions weight assigned to edges
+  # geom_edge_diagonal(aes(edge_colour=transition_probability), flipped=FALSE,
+  #                    edge_width=unit(0.25, "mm"), strength=0.8, arrow = arrow(length = unit(0.75, "mm"), ends = "last", type = "closed", angle = 45), start_cap = circle(1.0, "mm"), end_cap = circle(2.00, "mm")) +
+  # # map color to of strength to edges
+  # scale_edge_colour_distiller(type = "seq", palette = "Reds", direction = 1,
+  #                             #breaks=c(0, 0.25, 0.50, 0.75, 1.00), limits=c(0.00, 0.50), # the same scales for all CPs
+  #                             breaks=seq_transition_probability, limits=c(0.00, max_transition_probability), # specific scale for CP
+  #                             na.value = "grey50", name = "Seeding Strength (Edges):   ",
+  #                             guide = guide_edge_colorbar(direction = "horizontal",
+  #                                                         title.position = "left",
+  #                                                         title.hjust = 0, title.vjust = 0.5,
+  #                                                         ticks = TRUE, label = TRUE, ticks.colour = "white",
+  #                                                         label.hjust = 0.5, label.vjust = 0.5,
+  #                                                         label.position = "bottom",
+  #                                                         label.theme = element_text(colour = "black", size=7),
+  #                                                         frame.colour = "transparent", barwidth = 7, barheight = 0.5)) +
   
-  # ## edges (2A): organs assigned to edges, width of edge is the same for all
-  # geom_edge_diagonal(aes(color=sample), edge_width=unit(0.25, "mm"), strength=1, arrow = arrow(length = unit(0.75, "mm"), ends = "last", type = "closed", angle = 45), start_cap = circle(1.0, "mm"), end_cap = circle(2.00, "mm")) +
-  # scale_edge_color_manual(values=sample_color[sample_order], name="Seeding Direction From:") +
+  # # ## edges (2A): organs assigned to edges, width of edge is the same for all
+  # # geom_edge_diagonal(aes(color=sample), edge_width=unit(0.25, "mm"), strength=1, arrow = arrow(length = unit(0.75, "mm"), ends = "last", type = "closed", angle = 45), start_cap = circle(1.0, "mm"), end_cap = circle(2.00, "mm")) +
+  # # scale_edge_color_manual(values=sample_color[sample_order], name="Seeding Direction From:") +
   
-  # ## edges (2B): organs assigned to edges, width of edge is dependent on weight of connection
-  # geom_edge_diagonal(aes(width=transition_probability, color=sample), arrow = arrow(length = unit(0.75, "mm"), ends = "last", type = "closed", angle = 45), start_cap = circle(1.0, "mm"), end_cap = circle(2.00, "mm")) +
-  # scale_edge_width(range = c(0.1, 0.8), name = "Seeding Strenght (Edges):") +
-  # scale_edge_color_manual(values=sample_color[sample_order], name = "Seeding Direction From (Edges):") +
+  # # ## edges (2B): organs assigned to edges, width of edge is dependent on weight of connection
+  # # geom_edge_diagonal(aes(width=transition_probability, color=sample), arrow = arrow(length = unit(0.75, "mm"), ends = "last", type = "closed", angle = 45), start_cap = circle(1.0, "mm"), end_cap = circle(2.00, "mm")) +
+  # # scale_edge_width(range = c(0.1, 0.8), name = "Seeding Strenght (Edges):") +
+  # # scale_edge_color_manual(values=sample_color[sample_order], name = "Seeding Direction From (Edges):") +
   
-  ## organs colors and ASVs sizes are assigned to nodes
-  # nodes
-  geom_node_point(aes(color = sample, size = asv_freq_count), shape = 20) + # alternatively: asv_freq_count_radius_log10 vs asv_freq_count
-  # color of nodes 
-  scale_color_manual(values=sample_color[sample_order], breaks= sample_order, name = "Organ/ASV (Nodes):") +
-  # size of nodes
-  scale_size_area(max_size = 6, breaks = c(100, 1000, 10000), labels= c(expression(10^2), expression(10^3), expression(10^4))) +
-  ## shapes of nodes
-  geom_node_point(aes(color = sample, shape = asv_freq_count_inferred), size=2) +
-  scale_shape_manual(values=c("Inferred Ancestral State" = 18), limits=c("Inferred Ancestral State"), name = "Character State (Nodes):") +
+  # ## organs colors and ASVs sizes are assigned to nodes
+  # # nodes
+  # geom_node_point(aes(color = sample, size = asv_freq_count), shape = 20) + # alternatively: asv_freq_count_radius_log10 vs asv_freq_count
+  # # color of nodes 
+  # scale_color_manual(values=sample_color[sample_order], breaks= sample_order, name = "Organ/ASV (Nodes):") +
+  # # size of nodes
+  # scale_size_area(max_size = 6, breaks = c(100, 1000, 10000), labels= c(expression(10^2), expression(10^3), expression(10^4))) +
+  # ## shapes of nodes
+  # geom_node_point(aes(color = sample, shape = asv_freq_count_inferred), size=2) +
+  # scale_shape_manual(values=c("Inferred Ancestral State" = 18), limits=c("Inferred Ancestral State"), name = "Character State (Nodes):") +
 
   ## labs
   labs(x = NULL, y = NULL, title = paste0("Migration History of ", cp)) +
@@ -172,7 +175,8 @@ machina_tree_graph <-
         legend.title=element_text(size=10, margin = margin(t = 0, r = -1, b = 0, l = 2, unit = "mm")),
         legend.text=element_text(size=10, margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "mm"))) # legend.text=element_text(size=10, margin = margin(t = 0, r = 0, b = 0, l = -2, unit = "mm")))
 # save
+print(paste0("Saving: ", cp))
 ggsave(paste0(machina_tree_dir, "/", cp, "_", "machina_tree_graph.pdf"), machina_tree_graph, width = 45, height = 10, units = "cm")
+print(paste0("DONE: ", cp))
 }
 
-### tuniec ###

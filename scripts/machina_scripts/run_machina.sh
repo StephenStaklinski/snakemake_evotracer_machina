@@ -146,7 +146,7 @@ for l in *_tree_split.txt; do cat $l |sed "s/^/${l} tree /"| sed 's/_tree_split.
 # make command file for machina
 # speed up MACHINA a bit by adding "-m 3"
 grep -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do echo "${MACHINA} -OLD -t ${THREADS} -m 3 -o ${l}_split -c ${l}_colors.txt -p ${PTISSUE} ${l}_tree_split.txt ${l}_labels_split.txt &> ${l}_split/results.txt";done >> ${PREFIX}/machina.cmd
-grep -v -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do echo "${MACHINA} -t ${THREADS} -m 3 -o ${l}_split -c ${l}_colors.txt -p ${PTISSUE} ${l}_tree_split.txt ${l}_labels_split.txt &> ${l}_split/results.txt";done >> ${PREFIX}/machina.cmd
+# grep -v -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do echo "${MACHINA} -t ${THREADS} -m 3 -o ${l}_split -c ${l}_colors.txt -p ${PTISSUE} ${l}_tree_split.txt ${l}_labels_split.txt &> ${l}_split/results.txt";done >> ${PREFIX}/machina.cmd
 
 # run machina in parallel
 module load EBModules

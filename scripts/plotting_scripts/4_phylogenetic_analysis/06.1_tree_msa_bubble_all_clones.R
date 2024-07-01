@@ -480,7 +480,7 @@ msa_cna_bc_bubble_qnt_ggtree_mp <- print(msa_cna_bc_bubble_qnt_ggtree_mp) & them
 
 
 ## for publication and presentations
-ggsave(filename=output_dir + "/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf",plot=msa_cna_bc_bubble_qnt_ggtree_mp,width=50, height=dim(tree_df)[1]*0.7, units = "cm", limitsize = FALSE)} else {
+ggsave(filename=paste0(output_dir, "/cp_tree_msa_cna_bc_bubble_qnt_ggtree_mp.pdf"),plot=msa_cna_bc_bubble_qnt_ggtree_mp,width=50, height=dim(tree_df)[1]*0.7, units = "cm", limitsize = FALSE)
 
 ### tuniec ###
 

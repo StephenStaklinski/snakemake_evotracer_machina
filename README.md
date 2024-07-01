@@ -1,8 +1,10 @@
-# snakemake_evotracer_machina
+# A Snakemake pipeline to run EvoTraceR and MACHINA analysis on data from CRISPR lineage tracing of cancer metastasis
 
-This repo provides a snakemake pipeline to run the EvoTraceR to MACHINA analysis on input fastq files from Nowak Lab members. Please change the path to the fastqDirs in `config/config.yaml` and then run `./submit.sh` from the terminal.
+This repo provides a snakemake pipeline to run the [EvoTraceR](https://github.com/Nowak-Lab/EvoTraceR) and [MACHINA](https://github.com/raphael-group/machina) analysis on input fastq files from the Nowak lab's BC10v0 style data. To run, change the path to the fastqDirs in `config/config.yaml` and then run `./submit.sh` from the terminal.
 
-### Managing environments
+To run data from a different amplicon sequence, update `scripts/evotracer_scripts/evotracer.R`.  Further adjustments may be required in the `submit.sh` file depending on the cluster system used for submission, but this should be amenable to standard snakemake submission formats.
+
+### A note on the management of environments
 
 I used a combination of singularity and conda to manage environments in the `Snakefile`. The singularity image files are too large to be uploaded, so they will have to be built from the def files or I can provide them on request.
 
