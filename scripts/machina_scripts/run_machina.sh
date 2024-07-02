@@ -157,10 +157,10 @@ module unload Gurobi
 
 # parse results from each machina output dir
 grep -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do ${GETOLD} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}/all_results.txt
-grep -v -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do ${GET} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}/all_results.txt
+# grep -v -f ${PREFIX}/big_CP_list.txt ${PREFIX}/CP_list.txt| while read l; do ${GET} $l ${PTISSUE} ${SPATH};done | tr '\t' ' '>> ${PREFIX}/all_results.txt
 
 ## ANALYSE INFERRED TOPOLOGY
-python $TOPOLOGY ${PREFIX}/all_results.txt ${PTISSUE} > ${PREFIX}/seeding_topology.txt 
+python $TOPOLOGY ${PREFIX}/all_results.txt ${PTISSUE} > ${PREFIX}/seeding_topology.txt
 python $MIGRATION ${PREFIX}/all_results.txt > ${PREFIX}/migration.txt
 
 ## ANALYSE SELECTION ON ORIGINAL AND MACHINA TOPOLOGY
