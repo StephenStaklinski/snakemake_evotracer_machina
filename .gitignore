@@ -4,5 +4,5 @@
 .config
 job_logs
 *.sif
-billy_bladder_cancer_data
+billy_*
 Rplots.pdf

@@ -1,18 +1,12 @@
 # set path to the fastq files for a single mouse
 fastqDirs:
-    - /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/females/MMUS1910_240516/fastq_raw
-    - /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/males/MMUS3012/fastq_raw
-    - /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/males/MMUS1782/fastq_raw
-
-    # - /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/females/MMUS1834/fastq_raw
-    # - /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/females/MMUS1957_230403/fastq_raw
-    # - /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/males/MMUS3011/fastq_raw
-    # - /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_bladder_cancer_data/BL_BCa_2P_EF1_BC10v0_1g/animals/males/MMUS3010/fastq_raw
-
+    - /test1/path/fastqs
+    - /test2/path/fastqs
+    
 # rule runEvotracer
 fastqDirPrefix: fastq_raw
 
 # rule runMachina
 primaryTissue: BDR
-batches: 2
-threads: 50
+batches: 1
+threads: 100
