@@ -1,12 +1,11 @@
 # set path to the fastq files for a single mouse
 fastqDirs:
-    - /test1/path/fastqs
-    - /test2/path/fastqs
+    - /path/to/fastqs
     
 # rule runEvotracer
 fastqDirPrefix: fastq_raw
 
 # rule runMachina
 primaryTissue: BDR
-batches: 1
-threads: 100
+batches: 2
+threads: 50
