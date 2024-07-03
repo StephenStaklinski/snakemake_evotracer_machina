@@ -2,6 +2,7 @@
 .conda
 .cache
 .config
+.vscode
 job_logs
 *.sif
 billy_*
