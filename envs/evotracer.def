@@ -1,18 +1,17 @@
-Bootstrap: debootstrap
-OSVersion: focal
-MirrorURL: http://us.archive.ubuntu.com/ubuntu/
+Bootstrap: docker
+From: ubuntu:20.04
 
 %post
     # Install system dependencies
     apt-get update -y
-    apt-get install -y -qq --no-install-recommends software-properties-common dirmngr wget locales
+    apt-get install -y --no-install-recommends software-properties-common dirmngr wget locales
     add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -cs) universe"
     add-apt-repository -y ppa:ubuntugis/ppa
     add-apt-repository ppa:ubuntu-toolchain-r/test
     locale-gen en_US.UTF-8
     update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
-    apt-get install -y -qq --no-install-recommends git build-essential gcc-11 g++-11 gfortran-11 gfortran make default-jdk default-jre
-    apt-get install -y -qq libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev libgdal-dev libfontconfig1-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libharfbuzz-dev libfribidi-dev libsodium-dev
+    apt-get install -y --no-install-recommends git build-essential gcc-11 g++-11 gfortran-11 gfortran make default-jdk default-jre
+    apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev libgdal-dev libfontconfig1-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libharfbuzz-dev libfribidi-dev libsodium-dev
 
     # Install miniconda
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
@@ -28,12 +27,12 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     # Install R
     wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
     add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
-    apt-get install -y -qq --no-install-recommends r-base r-base-dev
+    apt install -y --no-install-recommends r-base
 
     # Install R packages from CRAN
-    Rscript --slave -e "install.packages(c('BiocManager', 'devtools'), dependencies=TRUE, repos='https://cloud.r-project.org', quiet=TRUE, verbose=FALSE)"
-    Rscript --slave -e "BiocManager::install('ggtree')"
-    Rscript --slave -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"
+    Rscript -e "install.packages(c('BiocManager', 'devtools'), dependencies=TRUE, repos='https://cloud.r-project.org')"
+    Rscript -e "BiocManager::install('ggtree')"
+    Rscript -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"
 
     # Install Trimmomatic
     mkdir -p /opt/trimmomatic
@@ -59,6 +58,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 %runscript
     #!/bin/bash
     "$@"
+
 
 
 
