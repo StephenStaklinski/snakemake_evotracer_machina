@@ -1,12 +1,22 @@
 __default__:
-  cores: 1
-  mem: '5G'
-  logout: '{wildcards.outdir}/job_logs/{rule}.out'
-  logerror: '{wildcards.outdir}/job_logs/{rule}.err'
+  cores: '{params.threads}'
+  mem: '{params.mem}'
+  logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{wildcards.cp}/{rule}.out'
+  logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{wildcards.cp}/{rule}.err'
+  runtime: 24:00:00
 
 runEvotracer:
-  cores: 10
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
 
-runMachina:
-  cores: 100
-  mem: '10G'
+plotEvotracerResults:
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
+
+splitCPs:
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
+
+prepMachina:
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'

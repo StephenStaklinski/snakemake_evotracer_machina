@@ -11,6 +11,7 @@ args = commandArgs(trailingOnly=TRUE)
 #input_dir <- system.file("extdata", "input", package = "EvoTraceR")
 input_dir <- args[1]
 output_dir <- args[2]
+cutoff <- as.numeric(args[3])
 
 # unzip files
 # List all files in the directory
@@ -51,7 +52,7 @@ EvoTraceR_object <-
                ref_cut_sites = c(17, 43, 69, 95, 121, 147, 173, 199, 225, 251),
                ref_border_sites = c(1, 26, 52, 78, 104, 130, 156, 182, 208, 234),
                output_figures = TRUE,
-               asv_count_cutoff = 3, # minimum number of ASVs to be counted; decided on: 03/25/22
+               asv_count_cutoff = cutoff, # minimum number of ASVs to be counted; decided on: 03/25/22
                # pair-wise alignment parameters between un-edited barcode and edited barcode (ASV)
                pwa_type = "global", # based on AmpliCan (global = Needleman-Wunsch)
                pwa_gapOpening = -25, # based on AmpliCan: -25

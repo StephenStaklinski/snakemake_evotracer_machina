@@ -1,11 +1,24 @@
-# set path to the fastq files for a single mouse
-fastqDirs:
-    - /path/to/fastqs
-    
-# rule runEvotracer
-fastqDirPrefix: fastq_raw
 
-# rule runMachina
-primaryTissue: BDR
-batches: 2
-threads: 50
+# directory for input fastq files
+fastqPath: /grid/siepel/home_norepl/staklins/bayesian_phylogenetic_metastasis/data/billy_bladder_cancer_data_7_1_24/fastq_raw
+
+# directory for output
+outdir: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/billy_data_7_1_24_analysis_on_3_3_25
+
+# evotracer parameters
+asvThreshold: 3
+
+# machina parameters
+primaryTissue:
+  MMUS1834: BDR
+  MMUS3012: BDR
+  MMUS3011: BDR
+  MMUS3010: BDR
+  MMUS1910: BDR1B  # specific to Billy's data, where MMUS1910 has two primary tumor labels
+  MMUS1957: BDR
+  MMUS1782: BDR
+
+
+# paths to scripts and executables
+scripts: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/scripts
+envs: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/envs
