@@ -355,7 +355,7 @@ rule callTransitionMatricesPerCP:
             transitionMatrixFiles=$(find {params.outputdir} -name "*_transition_matrix.csv" | paste -sd "," -)
 
             if [ -n "$transitionMatrixFiles" ]; then
-                python {params.scripts}/machina_scripts/combine_transition_matrices.py $transitionMatrixFiles {output.allSolutionsTransitionMatrix}
+                python {params.scripts}/machina_scripts/combine_transition_matrices.py $transitionMatrixFiles {output.allSolutionsTransitionMatrix} False
             fi
 
             # plotting
@@ -386,7 +386,7 @@ rule getOverallTransitionMatrixPerMouse:
         transitionMatrixFiles=$(find {params.outputdir} -name "all_transition_matrix.csv" | paste -sd "," -)
 
         if [ -n "$transitionMatrixFiles" ]; then
-            python {params.scripts}/machina_scripts/combine_transition_matrices.py $transitionMatrixFiles {output.overallTransitionMatrix}
+            python {params.scripts}/machina_scripts/combine_transition_matrices.py $transitionMatrixFiles {output.overallTransitionMatrix} True
             python {params.scripts}/plotting_scripts/plot_transition_matrix_from_csv.py {output.overallTransitionMatrix} {output.overallTransitionMatrixPlot}
         fi
         """
