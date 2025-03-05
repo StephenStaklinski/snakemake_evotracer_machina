@@ -8,13 +8,12 @@ import matplotlib.pyplot as plt
 input_csv = sys.argv[1]
 outfile = sys.argv[2]
 
-
 df = pd.read_csv(input_csv, index_col=0)
 
 df = df.div(df.sum(axis=1), axis=0)
 
 plt.figure(figsize=(8, 8))
-sns.heatmap(df, annot=True, cmap='Reds', fmt='.2f', cbar=False, annot_kws={"size": 18})
+sns.heatmap(df, annot=True, cmap='Reds', fmt='.2f', cbar=False, annot_kws={"size": 18}, linewidths=0.5, linecolor='white')
 
 plt.xlabel('Recipient Tissue', fontsize=22)
 plt.ylabel('Source Tissue', fontsize=22)

@@ -20,13 +20,13 @@ for file in matrixFiles:
         for line in f:
             source_tissue, *counts = line.strip().split(',')
             if normalized:
-                total_counts = sum(int(count) for count in counts)
+                total_counts = sum(float(count) for count in counts)
                 if total_counts == 0:
-                    counts = [int(count) for count in counts]
+                    counts = [float(count) for count in counts]
                 else:
                     counts = [float(count)/total_counts for count in counts]
             else:
-                counts = [int(count) for count in counts]
+                counts = [float(count) for count in counts]
             if source_tissue not in overall_matrix:
                 overall_matrix[source_tissue] = {}
             for i, recipient_tissue in enumerate(recipient_tissue_order):

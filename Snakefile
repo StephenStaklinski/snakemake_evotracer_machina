@@ -383,31 +383,12 @@ rule getOverallTransitionMatrixPerMouse:
         f"{envs}/networkx.sif"
     shell:
         """
-        transitionMatrixFiles=$(find {params.outputdir} -name "all_transition_matrix.csv" | paste -sd "," -)
+        transitionMatrixFiles=$(echo "{input}" | sed 's/ /,/g')
 
-        if [ -n "$transitionMatrixFiles" ]; then
-            python {params.scripts}/machina_scripts/combine_transition_matrices.py $transitionMatrixFiles {output.overallTransitionMatrix} True
-            python {params.scripts}/plotting_scripts/plot_transition_matrix_from_csv.py {output.overallTransitionMatrix} {output.overallTransitionMatrixPlot}
-        fi
+        python {params.scripts}/machina_scripts/combine_transition_matrices.py "$transitionMatrixFiles" {output.overallTransitionMatrix} True
+        python {params.scripts}/plotting_scripts/plot_transition_matrix_from_csv.py {output.overallTransitionMatrix} {output.overallTransitionMatrixPlot}
         """
 
+# rule callSeedingTopologiesPerCP:
 
-# rule plotMachinaResults:
-#     input:
-#         migrationMachina = "{outdir}/mach2/migration.txt",
-#         seedingMachina = "{outdir}/mach2/seeding_topology.txt"
-#     output:
-#         machinaRateMatrix = "{outdir}/mach2/machina_graphs/mach2_migration_plots/trans_mx_all.pdf",
-#         machinaTree = "{outdir}/mach2/machina_graphs/mach2_tree_plots/CP01_machina_tree_graph.pdf",
-#     params:
-#         machinaGraphsOutDir = "{outdir}/mach2/mach2_graphs"
-#         threads = 1,
-#         mem = '1G',
-#     singularity:
-#         "envs/evotracer_plotting.sif"
-#     shell:
-#         """
-#         Rscript scripts/plotting_scripts/5_machina_analysis/03_machina_migration_v1.R {input.migrationMachina} {params.machinaGraphsOutDir};
-
-#         Rscript scripts/plotting_scripts/5_machina_analysis/04_machina_seeding_topology_v1.R {input.seedingMachina} {params.machinaGraphsOutDir};
-#         """
+# rule combineSeedingTopologiesPerMouse:
