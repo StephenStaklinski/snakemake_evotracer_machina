@@ -29,7 +29,10 @@ rule all:
     input:
         expand("{outdir}/evotracer/{mouse}/hist_freq_indels.pdf", outdir = outdir, mouse = mice),
         expand("{outdir}/cp_split/{mouse}/cp_list.txt", outdir = outdir, mouse = mice),
+
+        # the above are required to run first with the below files commented out to first generate the cp list which can then be called by those below
         [expand("{outdir}/mach2/{mouse}/{cp}/consensus_graph_filtered_by_threshold.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        [expand("{outdir}/mach2/{mouse}/{cp}/BDR-G-0.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
 
 rule runEvotracer:
     input:
@@ -219,7 +222,7 @@ rule runMach2:
 
 rule gatherMach2Results:
     input:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"    # Not sure how to automate the primary tissue name in the input, so just need to swap the BDR as needed
     output:
         mach2Combined = "{outdir}/mach2/{mouse}/{cp}/graph_results_combined.txt",
         mach2Consensus = "{outdir}/mach2/{mouse}/{cp}/consensus_graph.txt",
@@ -283,16 +286,64 @@ rule plotFilteredMach2ConsensusGraph:
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         threads = 1,
         mem = '1G',
-    conda:
-        f"{envs}/networkx.yaml"
+    singularity:
+        f"{envs}/networkx.sif"
     shell:
         """
         python {params.scripts}/plotting_scripts/plot_mach2_consensus_graph.py {input.mach2Filtered} {params.primaryTissue} {output.mach2Graph}
         """
 
-rule collectMachinaMigration:
+rule plotMach2AllGraphsAndTrees:
     input:
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
+    output:
+        mach2graphPlot = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.pdf"
+    params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        scripts = config['scripts'],
+        outputdir = "{outdir}/mach2/{mouse}/{cp}",
+        threads = 1,
+        mem = '1G',
+    conda:
+        f"{envs}/networkx.yaml"
+    shell:
+        """
+        files=$(find {params.outputdir} -name "*.dot")
 
+        for file in $files; do
+            outfile=$(echo $file | sed 's/.dot/.pdf/')
+            python {params.scripts}/plotting_scripts/plot_migration_graph_from_dot.py $file $outfile
+        done
+
+        # Need to touch output files to satisfy output, only if output with a different name exists
+        if [ $(ls {params.outputdir}/*-G-*.pdf | wc -l) -gt 0 ] && [ ! -f {output.mach2graphPlot} ]; then
+            touch {output.mach2graphPlot}
+        elif [ $(ls {params.outputdir}/*-G-*.dot | wc -l) -eq 0 ]; then
+            touch {output.mach2graphPlot}
+        fi
+        """
+
+# rule callTransitionMatricesPerCP:
+#     input:
+#         mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
+#     output:
+#         transitionMatrix = "{outdir}/mach2/{mouse}/{cp}/transition_matrix.txt",
+#     params:
+#         scripts = config['scripts'],
+#         outputdir = "{outdir}/mach2/{mouse}/{cp}",
+#         threads = 1,
+#         mem = '1G',
+#     shell:
+#         """
+#         # use every tree file to call a transition matrix
+#         files=$(find {params.outputdir} -name "*.tree")
+
+#         for file in $files; do
+            
+#         done
+
+        
+#         """
 
 # rule plotMachinaResults:
 #     input:
