@@ -20,3 +20,7 @@ splitCPs:
 prepMachina:
     logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
     logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
+
+getOverallTransitionMatrixPerMouse:
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'

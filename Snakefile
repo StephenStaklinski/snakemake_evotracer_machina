@@ -33,6 +33,8 @@ rule all:
         # the above are required to run first with the below files commented out to first generate the cp list which can then be called by those below
         [expand("{outdir}/mach2/{mouse}/{cp}/consensus_graph_filtered_by_threshold.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         [expand("{outdir}/mach2/{mouse}/{cp}/BDR-G-0.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        [expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        expand("{outdir}/mach2/{mouse}/overall_transition_matrix.csv", outdir=outdir, mouse=mice),
 
 rule runEvotracer:
     input:
@@ -323,27 +325,72 @@ rule plotMach2AllGraphsAndTrees:
         fi
         """
 
-# rule callTransitionMatricesPerCP:
-#     input:
-#         mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
-#     output:
-#         transitionMatrix = "{outdir}/mach2/{mouse}/{cp}/transition_matrix.txt",
-#     params:
-#         scripts = config['scripts'],
-#         outputdir = "{outdir}/mach2/{mouse}/{cp}",
-#         threads = 1,
-#         mem = '1G',
-#     shell:
-#         """
-#         # use every tree file to call a transition matrix
-#         files=$(find {params.outputdir} -name "*.tree")
+rule callTransitionMatricesPerCP:
+    input:
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
+    output:
+        allSolutionsTransitionMatrix = "{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv",
+    params:
+        scripts = config['scripts'],
+        outputdir = "{outdir}/mach2/{mouse}/{cp}",
+        threads = 1,
+        mem = '1G',
+    singularity:
+        f"{envs}/networkx.sif"
+    shell:
+        """
+        # use every tree file to call a transition matrix
+        files=$(find {params.outputdir} -name "*.tree")
 
-#         for file in $files; do
-            
-#         done
+        if [ -z "$files" ]; then
+            echo "No solutions exist, so not plotting transition matrices."
+            touch {output}
+        else
+            for file in $files; do
+                labelingFile=$(echo $file | sed 's/.tree/.labeling/')
+                outfile=$(echo $file | sed 's/.tree/_transition_matrix.csv/')
+                python {params.scripts}/machina_scripts/call_transition_matrix_from_mach2_result.py $file $labelingFile $outfile
+            done
 
-        
-#         """
+            transitionMatrixFiles=$(find {params.outputdir} -name "*_transition_matrix.csv" | paste -sd "," -)
+
+            if [ -n "$transitionMatrixFiles" ]; then
+                python {params.scripts}/machina_scripts/combine_transition_matrices.py $transitionMatrixFiles {output.allSolutionsTransitionMatrix}
+            fi
+
+            # plotting
+            transitionMatrixFiles=$(find {params.outputdir} -name "*_transition_matrix.csv")
+
+            for file in $transitionMatrixFiles; do
+                outfile=$(echo $file | sed 's/.csv/.pdf/')
+                python scripts/plotting_scripts/plot_transition_matrix_from_csv.py $file $outfile
+            done
+        fi
+        """
+
+rule getOverallTransitionMatrixPerMouse:
+    input:
+        expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir=outdir, mouse=mouse, cp=get_elements_from_file(f"{outdir}/cp_split/{mouse}"))
+    output:
+        overallTransitionMatrix = "{outdir}/mach2/{mouse}/overall_transition_matrix.csv",
+        overallTransitionMatrixPlot = "{outdir}/mach2/{mouse}/overall_transition_matrix.pdf"
+    params:
+        scripts = config['scripts'],
+        outputdir = "{outdir}/mach2/{mouse}",
+        threads = 1,
+        mem = '1G',
+    singularity:
+        f"{envs}/networkx.sif"
+    shell:
+        """
+        transitionMatrixFiles=$(find {params.outputdir} -name "all_transition_matrix.csv" | paste -sd "," -)
+
+        if [ -n "$transitionMatrixFiles" ]; then
+            python {params.scripts}/machina_scripts/combine_transition_matrices.py $transitionMatrixFiles {output.overallTransitionMatrix}
+            python {params.scripts}/plotting_scripts/plot_transition_matrix_from_csv.py {output.overallTransitionMatrix} {output.overallTransitionMatrixPlot}
+        fi
+        """
+
 
 # rule plotMachinaResults:
 #     input:
