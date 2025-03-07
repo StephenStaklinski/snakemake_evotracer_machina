@@ -3,6 +3,7 @@
 export REPO_PATH=/grid/siepel/home_norepl/staklins/snakemake_evotracer_machina
 
 snakemake \
+--until runMach2 \
 --use-singularity \
 --singularity-args "--bind $HOME/" \
 --use-conda \

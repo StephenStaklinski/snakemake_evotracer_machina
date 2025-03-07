@@ -51,12 +51,24 @@ for node in tree.traverse():
         leaf_tissues = tissue_data[tissue_data['group_name'] == node.name]['tissues'].values.tolist()[0]
         if "," in leaf_tissues:
             leaf_tissues = leaf_tissues.split(",")
-            i = 0
-            for tissue in leaf_tissues:
-                edges.append((node.up.name, f"{node.name}_{i}"))
-                tissue_labels.append((f"{node.name}_{i}", tissue))
-                i += 1
+
+            # remove multiple primaries
+            leaf_tissues = list(set([primary_tissue if primary_tissue in tis else tis for tis in leaf_tissues]))
+
+            # make sure there is more than 1 tissue left
+            if len(leaf_tissues) == 1:
+                edges.append((node.up.name, node.name))
+                tissue_labels.append((node.name, leaf_tissues[0]))
+            else:
+                i = 0
+                for tissue in leaf_tissues:
+                    edges.append((node.up.name, f"{node.name}_{i}"))
+                    tissue_labels.append((f"{node.name}_{i}", tissue))
+                    i += 1
         else:
+            # only one primary sample allowed here
+            if primary_tissue in leaf_tissues:
+                leaf_tissues = primary_tissue
             edges.append((node.up.name, node.name))
             tissue_labels.append((node.name, leaf_tissues))
             

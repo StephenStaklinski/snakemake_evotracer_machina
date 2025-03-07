@@ -58,18 +58,16 @@ EvoTraceR_object <-
                ref_cut_sites = ref_cut_sites,
                ref_border_sites = ref_border_sites,
                output_figures = TRUE,
-               asv_count_cutoff = cutoff, # minimum number of ASVs to be counted; decided on: 03/25/22
-               # pair-wise alignment parameters between un-edited barcode and edited barcode (ASV)
-               pwa_type = "global", # based on AmpliCan (global = Needleman-Wunsch)
-               pwa_gapOpening = -25, # based on AmpliCan: -25
-               pwa_gapExtension = 0, # based on AmpliCan: 0
-               pwa_match = 15, # based on AmpliCan: 15
-               pwa_mismatch = -4, # based on AmpliCan: -4
-               cleaning_window = c(13, 13), # cleaning window +/- from Cas9 editing size (nucleotide 17 in guide) is considered as an edit 
+               asv_count_cutoff = cutoff,
+               pwa_type = "global",
+               pwa_gapOpening = -25,
+               pwa_gapExtension = 0,
+               pwa_match = 15,
+               pwa_mismatch = -4,
+               cleaning_window = c(10, 10),
                batch_size = 100,
                cores = parallel::detectCores()               
                )
-
 
 EvoTraceR_object <-
   analyse_mutations(EvoTraceR_object = EvoTraceR_object)

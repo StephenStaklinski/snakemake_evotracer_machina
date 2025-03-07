@@ -7,3 +7,5 @@ job_logs
 *.sif
 billy_*
 Rplots.pdf
+data
+results

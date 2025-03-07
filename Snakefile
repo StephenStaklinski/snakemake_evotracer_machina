@@ -27,8 +27,9 @@ envs = config['envs']
 
 rule all:
     input:
-        expand("{outdir}/evotracer/{mouse}/hist_freq_indels.pdf", outdir = outdir, mouse = mice),
+        expand("{outdir}/evotracer/{mouse}/stat_cps_dispersal_bargraph_hm.pdf", outdir = outdir, mouse = mice),
         expand("{outdir}/cp_split/{mouse}/cp_list.txt", outdir = outdir, mouse = mice),
+        expand("{outdir}/cp_split/{mouse}/cp_size_barplot.pdf", outdir = outdir, mouse = mice),
 
         # the above are required to run first with the below files commented out to first generate the cp list which can then be called by those below
         [expand("{outdir}/mach2/{mouse}/{cp}/consensus_graph_filtered_by_threshold.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
@@ -73,14 +74,14 @@ rule runEvotracer:
         gunzip $tempDir/*
 
         Rscript {params.scripts}/evotracer_scripts/evotracer.R $tempDir \
-        {params.evoOutDir} \
-        {params.asvThreshold} \
-        {params.refName} \
-        {params.refSeq} \
-        {params.refFlankLeft} \
-        {params.refFlankRight} \
-        {params.refCutSites} \
-        {params.refBorderSites}
+        "{params.evoOutDir}" \
+        "{params.asvThreshold}" \
+        "{params.refName}" \
+        "{params.refSeq}" \
+        "{params.refFlankLeft}" \
+        "{params.refFlankRight}" \
+        "{params.refCutSites}" \
+        "{params.refBorderSites}"
 
         # remove temp dir
         rm -r $tempDir
@@ -157,6 +158,37 @@ rule splitCPs:
         done
         """
 
+rule plotCpSizeBars:
+    input:
+        cpLists = "{outdir}/cp_split/{mouse}/cp_list.txt"
+    output:
+        asvCountPdf = "{outdir}/cp_split/{mouse}/cp_size_barplot.pdf"
+    params:
+        outdir = "{outdir}/cp_split/{mouse}",
+        scripts = config['scripts'],
+        threads = 1,
+        mem = '1G',
+    singularity:
+        f"{envs}/networkx.sif"
+    shell:
+        """
+        # Count the number of ASVs in each CP for each mouse
+        asv_count_csv={params.outdir}/asv_counts_per_cp.csv
+        echo "mouse,cp,num_asvs" > $asv_count_csv
+
+        files=$(find {params.outdir} -type f -name "tissues.tsv")
+
+        for file in $files; do
+            mouse=$(echo $file | rev | cut -d'/' -f3 | rev)
+            cp=$(echo $file | rev | cut -d'/' -f2 | rev)
+            num_asvs=$(($(wc -l < $file) - 1))
+            echo "$mouse,$cp,$num_asvs" >> $asv_count_csv
+        done
+
+        # Plot the number of ASVs in each CP for each mouse
+        python {params.scripts}/plotting_scripts/plot_bar_cp_sizes.py $asv_count_csv {output.asvCountPdf}
+        """
+
 
 rule prepMachina:
     input:
@@ -179,6 +211,8 @@ rule prepMachina:
     shell:
         """
         tissuesTsv={wildcards.outdir}/cp_split/{wildcards.mouse}/{wildcards.cp}/tissues.tsv
+
+        # modify the tissues so that there is always only one primaryTissue name, so if the primaryTissue name is found in the tissues with additional A,B or 1,2 etc. labels then will all be turned to primary label only
 
         # prep inputs
         python {params.scripts}/machina_scripts/prep_machina.py {input.evotracerCassiopeiaTree} {params.primaryTissue} $tissuesTsv {params.outputdir} {params.outprefix}
@@ -403,6 +437,6 @@ rule getOverallTransitionMatrixPerMouse:
         python {params.scripts}/plotting_scripts/plot_transition_matrix_from_csv.py {output.overallTransitionMatrix} {output.overallTransitionMatrixPlot}
         """
 
-# rule callSeedingTopologiesPerCP:
+# # rule callSeedingTopologiesPerCP:
 
-# rule combineSeedingTopologiesPerMouse:
+# # rule combineSeedingTopologiesPerMouse:

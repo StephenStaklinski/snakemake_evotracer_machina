@@ -17,6 +17,10 @@ splitCPs:
     logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
     logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
 
+plotCpSizeBars:
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
+
 prepMachina:
     logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
     logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
