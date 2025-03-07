@@ -47,6 +47,12 @@ rule runEvotracer:
         rDataObject = "{outdir}/evotracer/{mouse}/evotracer.RData"
     params:
         asvThreshold = config['asvThreshold'],
+        refName = config['ref_name'],
+        refSeq = config['ref_seq'],
+        refFlankLeft = config['ref_flank_left'],
+        refFlankRight = config['ref_flank_right'],
+        refCutSites = config['ref_cut_sites'],
+        refBorderSites = config['ref_border_sites'],
         evoOutDir = "{outdir}/evotracer/{mouse}",
         scripts = config['scripts'],
         threads = 10,
@@ -66,7 +72,15 @@ rule runEvotracer:
         # evotracer needs fastqs to be unzipped
         gunzip $tempDir/*
 
-        Rscript {params.scripts}/evotracer_scripts/evotracer.R $tempDir {params.evoOutDir} {params.asvThreshold}
+        Rscript {params.scripts}/evotracer_scripts/evotracer.R $tempDir \
+        {params.evoOutDir} \
+        {params.asvThreshold} \
+        {params.refName} \
+        {params.refSeq} \
+        {params.refFlankLeft} \
+        {params.refFlankRight} \
+        {params.refCutSites} \
+        {params.refBorderSites}
 
         # remove temp dir
         rm -r $tempDir

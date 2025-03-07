@@ -12,6 +12,12 @@ args = commandArgs(trailingOnly=TRUE)
 input_dir <- args[1]
 output_dir <- args[2]
 cutoff <- as.numeric(args[3])
+ref_name <- args[4]
+ref_seq <- args[5]
+ref_flank_left <- args[6]
+ref_flank_right <- args[7]
+ref_cut_sites <- as.numeric(unlist(strsplit(args[8], ",")))
+ref_border_sites <- as.numeric(unlist(strsplit(args[9], ",")))
 
 # unzip files
 # List all files in the directory
@@ -45,12 +51,12 @@ EvoTraceR_object <-
 
 EvoTraceR_object <-
   asv_analysis(EvoTraceR_object = EvoTraceR_object,
-               ref_name = "BC10v0",
-               ref_seq = "TCTACACGCGCGTTCAACCGAGGAAAACTACACACACGTTCAACCACGGTTTTTTACACACGCATTCAACCACGGACTGCTACACACGCACTCAACCGTGGATATTTACATACTCGTTCAACCGTGGATTGTTACACCCGCGTTCAACCAGGGTCAGATACACCCACGTTCAACCGTGGTACTATACTCGGGCATTCAACCGCGGCTTTCTGCACACGCCTACAACCGCGGAACTATACACGTGCATTCACCCGTGGATC",
-               ref_flank_left = "^TCTAC",
-               ref_flank_right = "CCCGTGGATC$",
-               ref_cut_sites = c(17, 43, 69, 95, 121, 147, 173, 199, 225, 251),
-               ref_border_sites = c(1, 26, 52, 78, 104, 130, 156, 182, 208, 234),
+               ref_name = ref_name,
+               ref_seq = ref_seq,
+                 ref_flank_left = paste0("^", ref_flank_left),
+               ref_flank_right = paste0(ref_flank_right, "$"),
+               ref_cut_sites = ref_cut_sites,
+               ref_border_sites = ref_border_sites,
                output_figures = TRUE,
                asv_count_cutoff = cutoff, # minimum number of ASVs to be counted; decided on: 03/25/22
                # pair-wise alignment parameters between un-edited barcode and edited barcode (ASV)
@@ -63,6 +69,7 @@ EvoTraceR_object <-
                batch_size = 100,
                cores = parallel::detectCores()               
                )
+
 
 EvoTraceR_object <-
   analyse_mutations(EvoTraceR_object = EvoTraceR_object)
