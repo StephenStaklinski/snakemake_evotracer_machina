@@ -4,6 +4,7 @@ import sys
 
 matrixFiles = sys.argv[1].split(',')
 outfile = sys.argv[2]
+# arg 3 treats any string as True, and "" as False
 normalized = bool(sys.argv[3])
 
 overall_matrix = {}
@@ -40,7 +41,10 @@ if normalized:
     for source_tissue in overall_matrix:
         recipient_sum = sum(overall_matrix[source_tissue].values())
         for recipient_tissue in overall_matrix[source_tissue]:
-            overall_matrix[source_tissue][recipient_tissue] /= recipient_sum
+            if recipient_sum == 0:
+                overall_matrix[source_tissue][recipient_tissue] = 0
+            else:
+                overall_matrix[source_tissue][recipient_tissue] /= recipient_sum
 
 # Ensure all tissues are in the matrix
 sorted_tissues = sorted(list(all_tissues))

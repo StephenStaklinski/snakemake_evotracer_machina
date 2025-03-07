@@ -114,6 +114,14 @@ rule plotEvotracerResults:
         Rscript {params.scripts}/plotting_scripts/4_phylogenetic_analysis/06.1_tree_msa_bubble_all_clones.R {input.rDataObject} {params.evoPlotsOutDir}
         """
 
+rule mergeTumorRegions:
+    input: "{outdir}/evotracer/{mouse}/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
+    output:"{outdir}/evotracer/{mouse}/phylogeny_analysis/phylogeny_del_ins/asv_stat.csv",
+    shell:
+        """
+        sed -E 's/PRL[a-zA-Z]/PRL/g' {input} > {output}
+        """
+
 rule splitCPs:
     input:
         char_matrix = "{outdir}/evotracer/{mouse}/asv_analysis/character_matrix.csv",
