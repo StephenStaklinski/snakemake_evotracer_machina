@@ -11,14 +11,14 @@ tissueMapping = {}
 allTissues = set()
 with open(labelingfile, "r") as f:
     for line in f:
-        name, tissue = line.strip().split(' ')
+        name, tissue = line.strip().split('\t')
         tissueMapping[name] = tissue
         allTissues.add(tissue)
 
 transitionCounts = {tissue: {t: 0 for t in allTissues} for tissue in allTissues}
 with open(treefile, "r") as f:
     for line in f:
-        parent, child, num = line.strip().split(' ')
+        parent, child, num = line.strip().split('\t')
         parentTissue = tissueMapping[parent]
         childTissue = tissueMapping[child]
         transitionCounts[parentTissue][childTissue] += 1

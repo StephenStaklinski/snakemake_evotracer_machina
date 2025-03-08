@@ -10,7 +10,9 @@ outfile = sys.argv[2]
 
 df = pd.read_csv(input_csv, index_col=0)
 
-df = df.div(df.sum(axis=1), axis=0)
+row_sums = df.sum(axis=1)
+df = df.div(row_sums.replace(0, 1), axis=0)
+df[row_sums == 0] = 0
 
 plt.figure(figsize=(8, 8))
 sns.heatmap(df, annot=True, cmap='Reds', fmt='.2f', cbar=False, annot_kws={"size": 18}, linewidths=0.5, linecolor='white')

@@ -39,8 +39,9 @@ for file in matrixFiles:
 if normalized:
     for source_tissue in overall_matrix:
         recipient_sum = sum(overall_matrix[source_tissue].values())
-        for recipient_tissue in overall_matrix[source_tissue]:
-            overall_matrix[source_tissue][recipient_tissue] /= recipient_sum
+        if recipient_sum != 0:
+            for recipient_tissue in overall_matrix[source_tissue]:
+                overall_matrix[source_tissue][recipient_tissue] /= recipient_sum
 
 # Ensure all tissues are in the matrix
 sorted_tissues = sorted(list(all_tissues))

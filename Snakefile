@@ -33,7 +33,7 @@ rule all:
 
         # the above are required to run first with the below files commented out to first generate the cp list which can then be called by those below
         [expand("{outdir}/mach2/{mouse}/{cp}/consensus_graph_filtered_by_threshold.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
-        [expand("{outdir}/mach2/{mouse}/{cp}/BDR-G-0.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        [expand("{outdir}/mach2/{mouse}/{cp}/PRL-G-0.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         [expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         expand("{outdir}/mach2/{mouse}/overall_transition_matrix.csv", outdir=outdir, mouse=mice),
 
@@ -225,15 +225,16 @@ rule runMach2:
         colors = "{outdir}/machina_prep/{mouse}/{cp}/{mouse}_{cp}_colors.txt",
         tree = "{outdir}/machina_prep/{mouse}/{cp}/{mouse}_{cp}.tree",
     output:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph",
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph",
     params:
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
         scripts = config['scripts'],
-        threads = 25,
+        threads = 50,
         mem = '5G',
     shell:
         """
+        exit
         # work around for now due to bad mach2 installation
         source ~/miniconda3/etc/profile.d/conda.sh 
         conda activate mach2
@@ -268,11 +269,13 @@ rule runMach2:
             echo "Only one unique tissue found in the labeling file, so not enough to run Machina. Exiting."
             touch {output}
         fi
+
+        find {params.outputdir} -type f -name "*.pdf" -exec rm {{}} \;
         """
 
 rule gatherMach2Results:
     input:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"    # Not sure how to automate the primary tissue name in the input, so just need to swap the BDR as needed
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph"    # Not sure how to automate the primary tissue name in the input
     output:
         mach2Combined = "{outdir}/mach2/{mouse}/{cp}/graph_results_combined.txt",
         mach2Consensus = "{outdir}/mach2/{mouse}/{cp}/consensus_graph.txt",
@@ -336,8 +339,8 @@ rule plotFilteredMach2ConsensusGraph:
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         threads = 1,
         mem = '1G',
-    singularity:
-        f"{envs}/networkx.sif"
+    conda:
+        f"{envs}/networkx.yaml"
     shell:
         """
         python {params.scripts}/plotting_scripts/plot_mach2_consensus_graph.py {input.mach2Filtered} {params.primaryTissue} {output.mach2Graph}
@@ -345,9 +348,9 @@ rule plotFilteredMach2ConsensusGraph:
 
 rule plotMach2AllGraphsAndTrees:
     input:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph"
     output:
-        mach2graphPlot = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.pdf"
+        mach2graphPlot = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.pdf"
     params:
         primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
         scripts = config['scripts'],
@@ -375,7 +378,7 @@ rule plotMach2AllGraphsAndTrees:
 
 rule callTransitionMatricesPerCP:
     input:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph"
     output:
         allSolutionsTransitionMatrix = "{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv",
     params:
@@ -395,8 +398,8 @@ rule callTransitionMatricesPerCP:
             touch {output}
         else
             for file in $files; do
-                labelingFile=$(echo $file | sed 's/.tree/.labeling/')
-                outfile=$(echo $file | sed 's/.tree/_transition_matrix.csv/')
+                labelingFile=$(echo $file | sed 's/.refined.tree/.location.labeling/')
+                outfile=$(echo $file | sed 's/.refined.tree/_transition_matrix.csv/')
                 python {params.scripts}/machina_scripts/call_transition_matrix_from_mach2_result.py $file $labelingFile $outfile
             done
 
