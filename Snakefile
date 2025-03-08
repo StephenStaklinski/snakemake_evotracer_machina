@@ -34,8 +34,8 @@ rule all:
         # the above are required to run first with the below files commented out to first generate the cp list which can then be called by those below
         [expand("{outdir}/mach2/{mouse}/{cp}/consensus_graph_filtered_by_threshold.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         [expand("{outdir}/mach2/{mouse}/{cp}/PRL-G-0.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
-        [expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
-        expand("{outdir}/mach2/{mouse}/overall_transition_matrix.csv", outdir=outdir, mouse=mice),
+        [expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        expand("{outdir}/mach2/{mouse}/overall_transition_matrix.pdf", outdir=outdir, mouse=mice),
 
 rule runEvotracer:
     input:
@@ -419,12 +419,38 @@ rule callTransitionMatricesPerCP:
         fi
         """
 
+rule plotTransitionMatricesPerCP:
+    input:
+        allSolutionsTransitionMatrix = "{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv",
+    output:
+        allSolutionsTransitionMatrixPlot = "{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.pdf",
+    params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        scripts = config['scripts'],
+        outputdir = "{outdir}/mach2/{mouse}/{cp}",
+        threads = 1,
+        mem = '1G',
+    singularity:
+        f"{envs}/evotracer_plotting.sif"
+    shell:
+        """
+        transitionMatrixFiles=$(find {params.outputdir} -name "*_transition_matrix.csv")
+
+        for file in $transitionMatrixFiles; do
+        outfile=$(echo $file | sed 's/.csv/.pdf/')
+            if [ -s "$file" ]; then
+                Rscript {params.scripts}/plotting_scripts/5_machina_analysis/03_machina_migration_v1.R "$file" "$outfile" "{params.primaryTissue}"
+            else
+                touch $outfile
+            fi
+        done
+        """
+
 rule getOverallTransitionMatrixPerMouse:
     input:
-        expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir=outdir, mouse=mouse, cp=get_elements_from_file(f"{outdir}/cp_split/{mouse}"))
+        lambda wildcards: expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir='{outdir}', mouse='{mouse}', cp=get_elements_from_file(f"{wildcards.outdir}/cp_split/{wildcards.mouse}"))
     output:
         overallTransitionMatrix = "{outdir}/mach2/{mouse}/overall_transition_matrix.csv",
-        overallTransitionMatrixPlot = "{outdir}/mach2/{mouse}/overall_transition_matrix.pdf"
     params:
         scripts = config['scripts'],
         outputdir = "{outdir}/mach2/{mouse}",
@@ -437,7 +463,24 @@ rule getOverallTransitionMatrixPerMouse:
         transitionMatrixFiles=$(echo "{input}" | sed 's/ /,/g')
 
         python {params.scripts}/machina_scripts/combine_transition_matrices.py "$transitionMatrixFiles" {output.overallTransitionMatrix} True
-        python {params.scripts}/plotting_scripts/plot_transition_matrix_from_csv.py {output.overallTransitionMatrix} {output.overallTransitionMatrixPlot}
+        """
+
+rule plotOverallTransitionMatrixPerMouse:
+    input:
+        overallTransitionMatrix = "{outdir}/mach2/{mouse}/overall_transition_matrix.csv",
+    output:
+        overallTransitionMatrixPlot = "{outdir}/mach2/{mouse}/overall_transition_matrix.pdf"
+    params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        scripts = config['scripts'],
+        outputdir = "{outdir}/mach2/{mouse}",
+        threads = 1,
+        mem = '1G',
+    singularity:
+        f"{envs}/evotracer_plotting.sif"
+    shell:
+        """
+        Rscript {params.scripts}/plotting_scripts/5_machina_analysis/03_machina_migration_v1.R "{input.overallTransitionMatrix}" "{output.overallTransitionMatrixPlot}" "{params.primaryTissue}"
         """
 
 # # rule callSeedingTopologiesPerCP:

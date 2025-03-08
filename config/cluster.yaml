@@ -28,3 +28,7 @@ prepMachina:
 getOverallTransitionMatrixPerMouse:
     logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
     logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
+
+plotOverallTransitionMatrixPerMouse:
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
