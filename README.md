@@ -6,3 +6,6 @@ This repo provides a snakemake pipeline to run the [EvoTraceR](https://github.co
 ### A note on the management of environments
 
 I used a combination of singularity and conda to manage environments in the `Snakefile`. The singularity image files are too large to be uploaded, so they will have to be built or I can provide them on request. The step that runs MACH2 is not easy to setup in a way that works across platforms since MACH2 requires on a user specific Gurobi license. This step will have to be tuned to the user's setup.
+
+
+This pipeline is not very easy to run across platforms in its current form and will be updated to make this easier.

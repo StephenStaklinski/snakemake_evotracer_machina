@@ -32,3 +32,11 @@ getOverallTransitionMatrixPerMouse:
 plotOverallTransitionMatrixPerMouse:
     logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
     logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
+
+getOverallSeedingTopologyPerMouse:
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'
+
+plotOverallSeedingTopologyPerMouse:
+    logout: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.out'
+    logerror: '{wildcards.outdir}/job_logs/{wildcards.mouse}/{rule}.err'

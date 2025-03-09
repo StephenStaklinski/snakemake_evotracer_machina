@@ -35,7 +35,9 @@ rule all:
         [expand("{outdir}/mach2/{mouse}/{cp}/consensus_graph_filtered_by_threshold.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         [expand("{outdir}/mach2/{mouse}/{cp}/PRL-G-0.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         [expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        [expand("{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         expand("{outdir}/mach2/{mouse}/overall_transition_matrix.pdf", outdir=outdir, mouse=mice),
+        expand("{outdir}/mach2/{mouse}/overall_seeding_topologies.pdf", outdir=outdir, mouse=mice),
 
 rule runEvotracer:
     input:
@@ -230,11 +232,12 @@ rule runMach2:
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
         scripts = config['scripts'],
-        threads = 50,
+        threads = 100,
         mem = '5G',
     shell:
         """
         exit
+
         # work around for now due to bad mach2 installation
         source ~/miniconda3/etc/profile.d/conda.sh 
         conda activate mach2
@@ -270,7 +273,9 @@ rule runMach2:
             touch {output}
         fi
 
-        find {params.outputdir} -type f -name "*.pdf" -exec rm {{}} \;
+        if [ $(ls {params.outputdir}/*.graph | wc -l) -gt 0 ] && [ ! -f {output.mach2graph} ]; then
+            touch {output}
+        fi
         """
 
 rule gatherMach2Results:
@@ -280,6 +285,7 @@ rule gatherMach2Results:
         mach2Combined = "{outdir}/mach2/{mouse}/{cp}/graph_results_combined.txt",
         mach2Consensus = "{outdir}/mach2/{mouse}/{cp}/consensus_graph.txt",
     params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
         scripts = config['scripts'],
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         threads = 1,
@@ -289,13 +295,26 @@ rule gatherMach2Results:
         # get all graph files
         results=$(find $(dirname {input.mach2graph}) -name "*.graph")
 
+        # get all unique tissue names in results where the file basename is tissue-*
+        unique_tissues=$(for file in $results; do basename $file | cut -d'-' -f1; done | sort | uniq)
+        useRootTissue=false
+        if [ $(echo "$unique_tissues" | wc -l) -gt 1 ]; then
+            root_tissue=$(echo "$unique_tissues" | grep -v "{params.primaryTissue}" | head -n 1)
+            useRootTissue=true
+        fi
+
         # combine all results
         echo "result_num,source,target,count" > {output.mach2Combined}
         for file in $results; do
-            result_num=$(basename $file | cut -d'-' -f3 | cut -d'.' -f1)
-            while IFS= read -r line; do
-                echo "$result_num,$(echo $line | tr ' ' ',')" >> {output.mach2Combined}
-            done < "$file"
+            if [ -s "$file" ]; then
+                result_num=$(basename $file | cut -d'-' -f3 | cut -d'.' -f1)
+                if [ "$useRootTissue" = true ]; then
+                    echo "$result_num,{params.primaryTissue},$root_tissue,1" >> {output.mach2Combined}
+                fi
+                while IFS= read -r line; do
+                    echo "$result_num,$(echo $line | tr ' ' ',')" >> {output.mach2Combined}
+                done < "$file"
+            fi
         done
 
         # get the probability weighted edge consensus graph
@@ -317,7 +336,7 @@ rule filterMach2Consensus:
         """
         for line in $(cat {input.mach2Consensus}); do
             freq=$(echo $line | cut -d',' -f2)
-            if (( $(echo "$freq >= {params.consensusThreshold}" | bc -l) )); then
+            if (( $(echo "$freq > {params.consensusThreshold}" | bc -l) )); then
                 echo $line >> {output.mach2Filtered}
             fi
         done
@@ -340,7 +359,7 @@ rule plotFilteredMach2ConsensusGraph:
         threads = 1,
         mem = '1G',
     conda:
-        f"{envs}/networkx.yaml"
+        f"{envs}/networkx3.yaml"
     shell:
         """
         python {params.scripts}/plotting_scripts/plot_mach2_consensus_graph.py {input.mach2Filtered} {params.primaryTissue} {output.mach2Graph}
@@ -358,7 +377,7 @@ rule plotMach2AllGraphsAndTrees:
         threads = 1,
         mem = '1G',
     conda:
-        f"{envs}/networkx.yaml"
+        f"{envs}/networkx3.yaml"
     shell:
         """
         files=$(find {params.outputdir} -name "*.dot")
@@ -381,13 +400,15 @@ rule callTransitionMatricesPerCP:
         mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph"
     output:
         allSolutionsTransitionMatrix = "{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv",
+        allSeedingTopologies = "{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.csv",
     params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
         scripts = config['scripts'],
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         threads = 1,
         mem = '1G',
-    singularity:
-        f"{envs}/networkx.sif"
+    conda:
+        f"{envs}/networkx3.yaml"
     shell:
         """
         # use every tree file to call a transition matrix
@@ -398,24 +419,31 @@ rule callTransitionMatricesPerCP:
             touch {output}
         else
             for file in $files; do
-                labelingFile=$(echo $file | sed 's/.refined.tree/.location.labeling/')
-                outfile=$(echo $file | sed 's/.refined.tree/_transition_matrix.csv/')
-                python {params.scripts}/machina_scripts/call_transition_matrix_from_mach2_result.py $file $labelingFile $outfile
+                if [[ "$file" == *".refined.tree" ]]; then
+                    labelingFile=$(echo $file | sed 's/.refined.tree/.location.labeling/')
+                    outfile=$(echo $file | sed 's/.refined.tree/_transition_matrix.csv/')
+                    outfile2=$(echo $file | sed 's/.refined.tree/_seeding_topologies.csv/')
+                else
+                    labelingFile=$(echo $file | sed 's/.tree/.labeling/')
+                    outfile=$(echo $file | sed 's/.tree/_transition_matrix.csv/')
+                    outfile2=$(echo $file | sed 's/.tree/_seeding_topologies.csv/')
+                fi
+                python {params.scripts}/machina_scripts/call_transition_matrix_from_mach2_result.py $file $labelingFile $outfile {params.primaryTissue}
+                python {params.scripts}/machina_scripts/get_seeding_topologies.py $file $labelingFile {params.primaryTissue} $outfile2 {wildcards.cp}
             done
 
             transitionMatrixFiles=$(find {params.outputdir} -name "*_transition_matrix.csv" | paste -sd "," -)
 
             if [ -n "$transitionMatrixFiles" ]; then
-                python {params.scripts}/machina_scripts/combine_transition_matrices.py $transitionMatrixFiles {output.allSolutionsTransitionMatrix} False
+                python {params.scripts}/machina_scripts/combine_transition_matrices.py "$transitionMatrixFiles" "{output.allSolutionsTransitionMatrix}" "False"
             fi
 
-            # plotting
-            transitionMatrixFiles=$(find {params.outputdir} -name "*_transition_matrix.csv")
 
-            for file in $transitionMatrixFiles; do
-                outfile=$(echo $file | sed 's/.csv/.pdf/')
-                python scripts/plotting_scripts/plot_transition_matrix_from_csv.py $file $outfile
-            done
+            seedingTopologyFiles=$(find {params.outputdir} -name "*_seeding_topologies.csv" | paste -sd "," -)
+
+            if [ -n "$seedingTopologyFiles" ]; then
+                python {params.scripts}/machina_scripts/combine_seeding_topologies.py "$seedingTopologyFiles" "{output.allSeedingTopologies}" "False"
+            fi
         fi
         """
 
@@ -446,9 +474,38 @@ rule plotTransitionMatricesPerCP:
         done
         """
 
+rule plotSeedingTopologyPerCP:
+    input:
+        allSeedingTopologies = "{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.csv",
+    output:
+        allSeedingTopologiesPlot = "{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.pdf",
+    params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        scripts = config['scripts'],
+        outputdir = "{outdir}/mach2/{mouse}/{cp}",
+        threads = 1,
+        mem = '1G',
+    singularity:
+        f"{envs}/evotracer_plotting.sif"
+    shell:
+        """
+        seedingTopologyFiles=$(find {params.outputdir} -name "*_seeding_topologies.csv")
+
+        for file in $seedingTopologyFiles; do
+            outfile=$(echo $file | sed 's/.csv/.pdf/')
+            if [ -s "$file" ]; then
+                Rscript {params.scripts}/plotting_scripts/5_machina_analysis/04_machina_seeding_topology_v1.R "$file" "$outfile"
+            else
+                touch $outfile
+            fi
+        done
+        """
+
+
 rule getOverallTransitionMatrixPerMouse:
     input:
-        lambda wildcards: expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir='{outdir}', mouse='{mouse}', cp=get_elements_from_file(f"{wildcards.outdir}/cp_split/{wildcards.mouse}"))
+        lambda wildcards: expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir='{outdir}', mouse='{mouse}', cp=get_elements_from_file(f"{wildcards.outdir}/cp_split/{wildcards.mouse}")),
+        # "{outdir}/mach2/{mouse}/CP03/all_transition_matrix.csv"
     output:
         overallTransitionMatrix = "{outdir}/mach2/{mouse}/overall_transition_matrix.csv",
     params:
@@ -483,6 +540,41 @@ rule plotOverallTransitionMatrixPerMouse:
         Rscript {params.scripts}/plotting_scripts/5_machina_analysis/03_machina_migration_v1.R "{input.overallTransitionMatrix}" "{output.overallTransitionMatrixPlot}" "{params.primaryTissue}"
         """
 
-# # rule callSeedingTopologiesPerCP:
+rule getOverallSeedingTopologyPerMouse:
+    input:
+        lambda wildcards: expand("{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.csv", outdir='{outdir}', mouse='{mouse}', cp=get_elements_from_file(f"{wildcards.outdir}/cp_split/{wildcards.mouse}")),
+        # "{outdir}/mach2/{mouse}/CP03/all_seeding_topologies.csv"
+    output:
+        overallSeedingTopologies = "{outdir}/mach2/{mouse}/overall_seeding_topologies.csv",
+    params:
+        scripts = config['scripts'],
+        outputdir = "{outdir}/mach2/{mouse}",
+        threads = 1,
+        mem = '1G',
+    conda:
+        f"{envs}/networkx3.yaml"
+    shell:
+        """
+        seedingTopologyFiles=$(echo "{input}" | sed 's/ /,/g')
 
-# # rule combineSeedingTopologiesPerMouse:
+        python {params.scripts}/machina_scripts/combine_seeding_topologies.py "$seedingTopologyFiles" "{output.overallSeedingTopologies}" "True"
+        """
+
+rule plotOverallSeedingTopologyPerMouse:
+    input:
+        overallSeedingTopologies = "{outdir}/mach2/{mouse}/overall_seeding_topologies.csv",
+    output:
+        overallSeedingTopologiesPlot = "{outdir}/mach2/{mouse}/overall_seeding_topologies.pdf"
+    params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        scripts = config['scripts'],
+        outputdir = "{outdir}/mach2/{mouse}",
+        threads = 1,
+        mem = '1G',
+    singularity:
+        f"{envs}/evotracer_plotting.sif"
+    shell:
+        """
+        Rscript {params.scripts}/plotting_scripts/5_machina_analysis/04_machina_seeding_topology_v1.R "{input.overallSeedingTopologies}" "{output.overallSeedingTopologiesPlot}"
+        """
+

@@ -5,10 +5,12 @@ import sys
 treefile = sys.argv[1]
 labelingfile = sys.argv[2]
 outfile = sys.argv[3]
+primary_tissue = sys.argv[4]
 
 
 tissueMapping = {}
 allTissues = set()
+allTissues.add(primary_tissue)
 with open(labelingfile, "r") as f:
     for line in f:
         try:
@@ -30,10 +32,13 @@ with open(treefile, "r") as f:
         transitionCounts[parentTissue][childTissue] += 1
 
 # get the primary tissue from the input tree file name
-primaryTissue = treefile.split("/")[-1].split("-")[0]
+rootTissue = treefile.split("/")[-1].split("-")[0]
 
-sortedTissues = sorted(allTissues - {primaryTissue})
-sortedTissues.insert(0, primaryTissue)
+if primary_tissue != rootTissue:
+    transitionCounts[primary_tissue][rootTissue] += 1
+
+sortedTissues = sorted(allTissues - {primary_tissue})
+sortedTissues.insert(0, primary_tissue)
 sortedTransitionCounts = {parent: {child: transitionCounts[parent][child] for child in sortedTissues} for parent in sortedTissues}
 
 header = "," + ",".join(list(sortedTransitionCounts.keys()))
