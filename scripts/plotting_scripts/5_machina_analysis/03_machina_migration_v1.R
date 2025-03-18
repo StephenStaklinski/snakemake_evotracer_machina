@@ -20,6 +20,10 @@ machina_migration_df <- machina_migration_df %>%
   mutate(total_weight_perc = round(total_weight / sum(total_weight), 2)) %>%
   ungroup()
 
+machina_migration_df <- machina_migration_df %>%
+  mutate(total_weight = ifelse(is.na(total_weight), 0, total_weight),
+          total_weight_perc = ifelse(is.na(total_weight_perc), 0, total_weight_perc))
+
 # Visualization: drawing weighted transition matrices
 max_migration_weight_perc <- machina_migration_df %>%
   ungroup() %>%
@@ -61,4 +65,4 @@ tree_trans_mx_weight_plot <- machina_migration_df %>%
 tree_trans_mx_weight_plot <- tree_trans_mx_weight_plot + guides(fill = guide_colourbar(barwidth = 1.0, barheight = 8.5))
 
 # Save plot as PDF
-ggsave(filename = file.path(outfile), plot = tree_trans_mx_weight_plot, height = 7.5, width = 10, units = "cm")
+ggsave(filename = file.path(outfile), plot = tree_trans_mx_weight_plot, height = 12.5, width = 15, units = "cm")

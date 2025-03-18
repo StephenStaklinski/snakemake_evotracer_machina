@@ -232,12 +232,10 @@ rule runMach2:
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
         scripts = config['scripts'],
-        threads = 100,
+        threads = 150,
         mem = '5G',
     shell:
         """
-        exit
-
         # work around for now due to bad mach2 installation
         source ~/miniconda3/etc/profile.d/conda.sh 
         conda activate mach2
@@ -504,8 +502,8 @@ rule plotSeedingTopologyPerCP:
 
 rule getOverallTransitionMatrixPerMouse:
     input:
-        lambda wildcards: expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir='{outdir}', mouse='{mouse}', cp=get_elements_from_file(f"{wildcards.outdir}/cp_split/{wildcards.mouse}")),
-        # "{outdir}/mach2/{mouse}/CP03/all_transition_matrix.csv"
+        # lambda wildcards: expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir='{outdir}', mouse='{mouse}', cp=get_elements_from_file(f"{wildcards.outdir}/cp_split/{wildcards.mouse}")),
+        "{outdir}/mach2/{mouse}/CP03/all_transition_matrix.csv"
     output:
         overallTransitionMatrix = "{outdir}/mach2/{mouse}/overall_transition_matrix.csv",
     params:

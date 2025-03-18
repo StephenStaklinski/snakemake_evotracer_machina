@@ -1,9 +1,12 @@
 
 # directory for input fastq files
 fastqPath: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/data/serio_pca_2p_2pr_data_3_7_25
+# fastqPath: /grid/siepel/home_norepl/staklins/bayesian_phylogenetic_metastasis/data/billy_bladder_cancer_data_bc10v0_7_1_24/fastq_raw
+# fastqPath: /grid/siepel/home_norepl/staklins/bayesian_phylogenetic_metastasis/data/billy_bladder_cancer_data_bc10v2_3_14_25/fastq_raw
 
 # directory for output
 outdir: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/results/analysis_on_3_7_25_serio_pca_2p_2pr_data_3_7_25
+# outdir: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/results/analysis_on_3_14_25_billy_bladder_cancer_data_old_bc10v0_and_new_bc10v2
 
 # evotracer parameters
 asvThreshold: 3
@@ -11,31 +14,31 @@ asvThreshold: 3
 # # evotracer parameters for BC10v0
 # ref_name: "BC10v0"
 # ref_seq: "TCTACACGCGCGTTCAACCGAGGAAAACTACACACACGTTCAACCACGGTTTTTTACACACGCATTCAACCACGGACTGCTACACACGCACTCAACCGTGGATATTTACATACTCGTTCAACCGTGGATTGTTACACCCGCGTTCAACCAGGGTCAGATACACCCACGTTCAACCGTGGTACTATACTCGGGCATTCAACCGCGGCTTTCTGCACACGCCTACAACCGCGGAACTATACACGTGCATTCACCCGTGGATC"
-# ref_flank_left: "TCTAC"
 # ref_flank_right: "CCCGTGGATC"
-# ref_cut_sites: "17,43,69,95,121,147,173,199,225,251"
-# ref_border_sites: "1,26,52,78,104,130,156,182,208,234"
 
 # evotracer parameters for BC10v2
 ref_name: "BC10v2"
 ref_seq: "TCTACACGCGCGTTCAACCGAGGAAAACTACACACGCATTCAACCACGGTTTATTACACGCACATTCAACCGTGGACTGCTACACACGCGCTCAACCACGGATATTTACGCACACGTTCAACCGCGGATTGTTACACCCGCATTCAACCGAGGTCACCTACACCCGCACTCAACCGGGGTACGCGACACGTGCGATCAACCGAGGCTTACTACCCGCACGTTCAACTGGGGAACACTGCACGCGAGTTCGACCGGGGATC"
-ref_flank_left: "TCTAC"
 ref_flank_right: "ACCGGGGATC"
+
+# same for both bc10v0 and bc10v2
+ref_flank_left: "TCTAC"
 ref_cut_sites: "17,43,69,95,121,147,173,199,225,251"
 ref_border_sites: "1,26,52,78,104,130,156,182,208,234"
 
 
 # machina parameters
-# primaryTissue:
-#   MMUS1834: BDR
-#   MMUS3012: BDR
-#   MMUS3011: BDR
-#   MMUS3010: BDR
-#   MMUS1910: BDR1B  # specific to Billy's data, where MMUS1910 has two primary tumor labels
-#   MMUS1957: BDR
-#   MMUS1782: BDR
-
 primaryTissue:
+  MMUS1834: BDR
+  MMUS3012: BDR
+  MMUS3011: BDR
+  MMUS3010: BDR
+  MMUS1910: BDR
+  MMUS1957: BDR
+  MMUS1782: BDR
+  MMUS7288: BDR
+  MMUS7280: BDR
+  MMUS7235: BDR
   MMUS7317: PRL
   MMUS7323: PRL
   MMUS7351: PRL
