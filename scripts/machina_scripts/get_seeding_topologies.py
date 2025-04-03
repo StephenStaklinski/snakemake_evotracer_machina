@@ -43,10 +43,6 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
                     children_diff.append(tissue_dict[child.name])
                 else:
                     children_same.append(tissue_dict[child.name])
-                    
-            # check for metastatic reseeding event
-            if not node.is_root() and tissue_dict[node.up.name] != ptissue and tissue_dict[node.up.name] in children_diff:
-                seeding_counts["metastatic_re_seeding"] += 1
             
             # If there are multiple different tissues among the children, it's a parallel seeding event
             if len(set(children_diff)) > 1:
@@ -72,9 +68,31 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
             seeding_counts["metastatic_confined"] += 1
         elif pair[0] != ptissue and pair[1] == ptissue:
             seeding_counts["primary_re_seeding"] += 1
-        elif pair[0] != ptissue and pair[1] != ptissue and pair[0] != pair[1]:
-            seeding_counts["metastatic_mono_seeding"] += 1
     
+    # count metastatic mono seeding and metastatic reseeding events
+    # ignore edges with primary tissue node and edges confined to one tissue
+    filtered_edges = [sublist for sublist in edges if 'PRL' not in sublist]
+    filtered_edges = [sublist for sublist in filtered_edges if len(set(sublist)) > 1]
+    # get unique matching forward and reverse pairs
+    forward_pairs = set()
+    reverse_pairs = set()
+    for pair in filtered_edges:
+        tup = tuple(pair)
+        rev = tuple(pair[::-1])
+        if rev in forward_pairs:
+            reverse_pairs.add(rev)
+        forward_pairs.add(tup)
+    
+    # count metastatic reseeding events
+    matching_pairs = [list(pair) for pair in reverse_pairs]
+    for pair in matching_pairs:
+        count = sum(1 for sublist in filtered_edges if sublist == pair)
+        seeding_counts["metastatic_re_seeding"] += count
+    
+    # count remaining metastatic mono seeding events
+    nonmatching_pairs = [sublist for sublist in filtered_edges if sublist not in matching_pairs]
+    seeding_counts["metastatic_mono_seeding"] += len(nonmatching_pairs)
+
     # Return the counts of different seeding events
     return seeding_counts
 
