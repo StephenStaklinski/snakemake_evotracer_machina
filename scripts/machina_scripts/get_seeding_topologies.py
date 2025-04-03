@@ -71,7 +71,7 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
     
     # count metastatic mono seeding and metastatic reseeding events
     # ignore edges with primary tissue node and edges confined to one tissue
-    filtered_edges = [sublist for sublist in edges if 'PRL' not in sublist]
+    filtered_edges = [sublist for sublist in edges if ptissue not in sublist]
     filtered_edges = [sublist for sublist in filtered_edges if len(set(sublist)) > 1]
     # get unique matching forward and reverse pairs
     forward_pairs = set()
