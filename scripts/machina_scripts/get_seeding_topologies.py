@@ -6,6 +6,47 @@ from ete3 import Tree
 from itertools import groupby
 
 
+def find_cycles(edges, ptissue):
+    """Find all cycles in a directed graph represented by edges, excluding any cycles that include the primary tissue."""
+    # Create adjacency list
+    graph = {}
+    for src, dst in edges:
+        if src not in graph:
+            graph[src] = []
+        graph[src].append(dst)
+    
+    # Track visited nodes and recursion stack
+    visited = set()
+    recursion_stack = set()
+    cycles = []
+    
+    def dfs(node, path):
+        visited.add(node)
+        recursion_stack.add(node)
+        path.append(node)
+        
+        if node in graph:
+            for neighbor in graph[node]:
+                if neighbor not in visited:
+                    dfs(neighbor, path)
+                elif neighbor in recursion_stack:
+                    # Found a cycle
+                    cycle_start = path.index(neighbor)
+                    cycle = path[cycle_start:]
+                    # Only add cycle if it doesn't include primary tissue
+                    if ptissue not in cycle:
+                        cycles.append(cycle)
+        
+        path.pop()
+        recursion_stack.remove(node)
+    
+    # Start DFS from each unvisited node
+    for node in graph:
+        if node not in visited:
+            dfs(node, [])
+    
+    return cycles
+
 def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
     # Convert the tabular tree into an ete3 Tree object
     tree = Tree.from_parent_child_table(tabular_tree)
@@ -73,25 +114,36 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
     # ignore edges with primary tissue node and edges confined to one tissue
     filtered_edges = [sublist for sublist in edges if ptissue not in sublist]
     filtered_edges = [sublist for sublist in filtered_edges if len(set(sublist)) > 1]
-    # get unique matching forward and reverse pairs
-    forward_pairs = set()
-    reverse_pairs = set()
-    for pair in filtered_edges:
-        tup = tuple(pair)
-        rev = tuple(pair[::-1])
-        if rev in forward_pairs:
-            reverse_pairs.add(rev)
-        forward_pairs.add(tup)
     
-    # count metastatic reseeding events
-    matching_pairs = [list(pair) for pair in reverse_pairs]
-    for pair in matching_pairs:
-        count = sum(1 for sublist in filtered_edges if sublist == pair)
-        seeding_counts["metastatic_re_seeding"] += count
+    # Find all cycles in the filtered edges, explicitly excluding primary tissue
+    cycles = find_cycles(filtered_edges, ptissue)
     
-    # count remaining metastatic mono seeding events
-    nonmatching_pairs = [sublist for sublist in filtered_edges if sublist not in matching_pairs]
-    seeding_counts["metastatic_mono_seeding"] += len(nonmatching_pairs)
+    # Count metastatic reseeding events based on cycles
+    for cycle in cycles:
+        # Each cycle represents a metastatic reseeding event
+        seeding_counts["metastatic_re_seeding"] += 1
+    
+    # Create a set of edges that are part of cycles
+    cycle_edges = set()
+    for cycle in cycles:
+        for i in range(len(cycle)):
+            cycle_edges.add((cycle[i], cycle[(i+1)%len(cycle)]))
+    
+    # Count additional reseeding events between the same metastatic sites
+    # First, count how many times each edge appears
+    edge_counts = {}
+    for edge in filtered_edges:
+        edge_tuple = tuple(edge)
+        edge_counts[edge_tuple] = edge_counts.get(edge_tuple, 0) + 1
+    
+    # For each edge that's part of a cycle, count additional occurrences as reseeding events
+    for edge, count in edge_counts.items():
+        if edge in cycle_edges and count > 1:
+            seeding_counts["metastatic_re_seeding"] += (count - 1)
+    
+    # Count remaining edges that are not part of any cycle as mono seeding events
+    non_cycle_edges = [edge for edge in filtered_edges if tuple(edge) not in cycle_edges]
+    seeding_counts["metastatic_mono_seeding"] += len(non_cycle_edges)
 
     # Return the counts of different seeding events
     return seeding_counts
