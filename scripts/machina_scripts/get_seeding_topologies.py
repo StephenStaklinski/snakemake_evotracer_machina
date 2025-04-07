@@ -73,42 +73,10 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
     # List to store edges for further processing
     edges = []
     
-    # Traverse the tree
     for i, node in enumerate(tree.traverse("preorder")):
         if not node.is_leaf():
-            # Get the tissues of the children nodes and categorize them
-            children_diff = []
-            children_same = []
             for child in node.children:
-                if tissue_dict[child.name] != tissue_dict[node.name]:
-                    children_diff.append(tissue_dict[child.name])
-                else:
-                    children_same.append(tissue_dict[child.name])
-            
-            # If there are multiple different tissues among the children, it's a parallel seeding event
-            if len(set(children_diff)) > 1:
-                if tissue_dict[node.name] == ptissue:
-                    seeding_counts["primary_parallel_seeding"] += 1
-                # metastatic parallel seeding should not count primary reseeding event
-                elif len(set(children_diff)) > 2 or ptissue not in children_diff:
-                    seeding_counts["metastatic_parallel_seeding"] += 1
-                # Add edges for only children that match the parent
-                edges.extend([[tissue_dict[node.name], tissue_dict[node.name]] for _ in children_same])
-            else:
-                # Add edges for all children
-                all_children = children_same + children_diff
-                edges.extend([[tissue_dict[node.name], c] for c in all_children])
-
-    # Process the edges to count different types of seeding events
-    for pair in edges:
-        if pair[0] == ptissue and pair[1] != ptissue:
-            seeding_counts["primary_mono_seeding"] += 1
-        elif pair[0] == ptissue and pair[1] == ptissue:
-            seeding_counts["primary_confined"] += 1
-        elif pair[0] != ptissue and pair[1] != ptissue and pair[0] == pair[1]:
-            seeding_counts["metastatic_confined"] += 1
-        elif pair[0] != ptissue and pair[1] == ptissue:
-            seeding_counts["primary_re_seeding"] += 1
+                edges.append([tissue_dict[node.name], tissue_dict[child.name]])   
     
     # count metastatic mono seeding and metastatic reseeding events
     # ignore edges with primary tissue node and edges confined to one tissue
@@ -140,10 +108,48 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
     for edge, count in edge_counts.items():
         if edge in cycle_edges and count > 1:
             seeding_counts["metastatic_re_seeding"] += (count - 1)
-    
-    # Count remaining edges that are not part of any cycle as mono seeding events
+            
+    # count metastatic parallel seeding events here
     non_cycle_edges = [edge for edge in filtered_edges if tuple(edge) not in cycle_edges]
-    seeding_counts["metastatic_mono_seeding"] += len(non_cycle_edges)
+    
+    # Group edges by source tissue
+    source_to_edges = {}
+    for edge in non_cycle_edges:
+        source = edge[0]
+        if source not in source_to_edges:
+            source_to_edges[source] = []
+        source_to_edges[source].append(edge)
+    
+    # Count parallel seeding events
+    for source, edges_by_src in source_to_edges.items():
+        if len(edges_by_src) >= 2:
+            # Get unique destination tissues
+            dest_tissues = set(edge[1] for edge in edges_by_src)
+            if len(dest_tissues) >= 2:
+                seeding_counts["metastatic_parallel_seeding"] += len(edges_by_src)
+            else:
+                seeding_counts["metastatic_mono_seeding"] += len(edges_by_src)
+        else:
+            seeding_counts["metastatic_mono_seeding"] += len(edges_by_src)
+    
+    # count primary parallel and monoseeding events
+    primary_edges = [edge for edge in edges if edge[0] == ptissue and edge[1] != ptissue]
+    
+    # Group primary edges by source tissue (should all be primary tissue)
+    dest_tissues = set(edge[1] for edge in primary_edges)
+    if len(dest_tissues) >= 2:
+        seeding_counts["primary_parallel_seeding"] += len(primary_edges)
+    else:
+        seeding_counts["primary_mono_seeding"] += len(primary_edges)
+    
+    # Process the edges to count different types of seeding events
+    for pair in edges:
+        if pair[0] == ptissue and pair[1] == ptissue:
+            seeding_counts["primary_confined"] += 1
+        elif pair[0] != ptissue and pair[1] != ptissue and pair[0] == pair[1]:
+            seeding_counts["metastatic_confined"] += 1
+        elif pair[0] != ptissue and pair[1] == ptissue:
+            seeding_counts["primary_re_seeding"] += 1
 
     # Return the counts of different seeding events
     return seeding_counts
