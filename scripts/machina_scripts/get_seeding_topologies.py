@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-from collections import Counter
 from ete3 import Tree
-from itertools import groupby
-
 
 def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
     # Convert the tabular tree into an ete3 Tree object
@@ -38,17 +35,42 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
             # Get the tissues of the children nodes and categorize them
             children_diff = []
             children_same = []
+            metastatic_reseeding_children = set()
+            
+            # First check for metastatic reseeding events
+            if tissue_dict[node.name] != ptissue:  
+                # Track which reseeding events we've already counted
+                counted_metastatic_reseeding_events = set()
+                # Check if any child's tissue matches an ancestor's tissue
+                for child in node.children:
+                    if tissue_dict[child.name] != ptissue:
+                        # Get all ancestor tissues
+                        ancestor = node
+                        while ancestor:
+                            if tissue_dict[ancestor.name] == tissue_dict[child.name]:
+                                # Create a unique identifier for this reseeding event
+                                event_id = (tissue_dict[child.name], child.name)
+                                if event_id not in counted_metastatic_reseeding_events:
+                                    seeding_counts["metastatic_re_seeding"] += 1
+                                    counted_metastatic_reseeding_events.add(event_id)
+                                    metastatic_reseeding_children.add(child)
+                                break
+                            ancestor = ancestor.up
+
+            # Categorize children, excluding those involved in metastatic reseeding
             for child in node.children:
-                if tissue_dict[child.name] != tissue_dict[node.name]:
-                    children_diff.append(tissue_dict[child.name])
-                else:
-                    children_same.append(tissue_dict[child.name])
+                if child not in metastatic_reseeding_children:
+                    if tissue_dict[child.name] != tissue_dict[node.name]:
+                        children_diff.append(tissue_dict[child.name])
+                    else:
+                        children_same.append(tissue_dict[child.name])
 
             # If there are multiple different tissues among the children, it's a parallel seeding event
             if len(set(children_diff)) > 1:
                 if tissue_dict[node.name] == ptissue:
                     seeding_counts["primary_parallel_seeding"] += 1
-                else:
+                # metastatic parallel seeding should not count primary reseeding event
+                elif len(set(children_diff)) > 2 or ptissue not in children_diff:
                     seeding_counts["metastatic_parallel_seeding"] += 1
                 # Add edges for only children that match the parent
                 edges.extend([[tissue_dict[node.name], tissue_dict[node.name]] for _ in children_same])
