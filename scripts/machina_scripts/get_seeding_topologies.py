@@ -43,7 +43,7 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
                 counted_metastatic_reseeding_events = set()
                 # Check if any child's tissue matches an ancestor's tissue
                 for child in node.children:
-                    if tissue_dict[child.name] != ptissue:
+                    if tissue_dict[child.name] != ptissue and tissue_dict[node.name] != tissue_dict[child.name]:
                         # Get all ancestor tissues
                         ancestor = node
                         while ancestor:
@@ -68,10 +68,10 @@ def seeding_topology_tree(tabular_tree, tissue_dict, ptissue):
             # If there are multiple different tissues among the children, it's a parallel seeding event
             if len(set(children_diff)) > 1:
                 if tissue_dict[node.name] == ptissue:
-                    seeding_counts["primary_parallel_seeding"] += 1
+                    seeding_counts["primary_parallel_seeding"] += len(children_diff)
                 # metastatic parallel seeding should not count primary reseeding event
                 elif len(set(children_diff)) > 2 or ptissue not in children_diff:
-                    seeding_counts["metastatic_parallel_seeding"] += 1
+                    seeding_counts["metastatic_parallel_seeding"] += len([t for t in children_diff if t != ptissue])
                 # Add edges for only children that match the parent
                 edges.extend([[tissue_dict[node.name], tissue_dict[node.name]] for _ in children_same])
             else:
