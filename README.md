@@ -1,4 +1,4 @@
-# CRISPR Lineage Tracing Analysis Pipeline
+# Cancer metastasis CRISPR lineage tracing analysis pipeline
 
 A Snakemake pipeline for analyzing CRISPR lineage tracing data from cancer metastasis studies using EvoTraceR and MACH2.
 
@@ -7,10 +7,9 @@ A Snakemake pipeline for analyzing CRISPR lineage tracing data from cancer metas
 This pipeline processes raw FASTQ files from CRISPR lineage tracing experiments to reconstruct and analyze tumor evolution and metastasis patterns. It combines two powerful tools:
 
 1. **EvoTraceR**: [EvoTraceR](https://github.com/Nowak-Lab/EvoTraceR) processes raw sequencing data to reconstruct phylogenetic trees and analyze clonal evolution
-2. **MACH2**: [MACH2](https://github.com/
-elkebir-group/MACH2) analyzes metastasis patterns and reconstructs seeding topologies
+2. **MACH2**: [MACH2](https://github.com/elkebir-group/MACH2) analyzes metastasis patterns and reconstructs seeding topologies
 
-## Pipeline Structure
+## Pipeline structure
 
 The pipeline consists of several key components:
 
@@ -19,7 +18,7 @@ The pipeline consists of several key components:
 - `envs/`: Environment definitions for different pipeline steps
 - `scripts/`: Helper scripts for data processing
 
-## Key Features
+## Key features
 
 - Automated processing of raw FASTQ files
 - Phylogenetic tree reconstruction
@@ -31,7 +30,7 @@ The pipeline consists of several key components:
   - Transition matrices
   - Seeding topologies
 
-## Setup and Requirements
+## Setup and requirements
 
 ### Dependencies
 
@@ -67,7 +66,7 @@ The pipeline generates several types of output files:
 - Metastasis transition matrices
 - Visualization plots in PDF format
 
-## Note on Environment Management
+## Note on environment management
 
 The pipeline uses a combination of Singularity and Conda for environment management. Due to size constraints, Singularity images are not included in the repository and must be built or obtained separately. The MACH2 step requires a Gurobi license, which needs to be configured according to the user's setup.
 
