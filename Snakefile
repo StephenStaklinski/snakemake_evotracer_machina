@@ -11,12 +11,16 @@ for file in glob(os.path.join(config['fastqPath'], "*.fastq.gz")):
     if mouse not in mouse_fastqs:
         mouse_fastqs[mouse] = []
     mouse_fastqs[mouse].append(file)
+    
 
 def get_elements_from_file(path):
     # to get all cps
     filename = f"{path}/cp_list.txt"
     with open(filename) as f:
         cps = [line.strip() for line in f if set(list(line.strip().replace("CP", ""))) != set('0')]
+
+    cps = [cp for cp in cps if cp != "CP01"]
+
     return cps
 
 
@@ -27,13 +31,12 @@ envs = config['envs']
 
 rule all:
     input:
-        expand("{outdir}/evotracer/{mouse}/stat_cps_dispersal_bargraph_hm.pdf", outdir = outdir, mouse = mice),
+        # expand("{outdir}/evotracer/{mouse}/stat_cps_dispersal_bargraph_hm.pdf", outdir = outdir, mouse = mice),
         expand("{outdir}/cp_split/{mouse}/cp_list.txt", outdir = outdir, mouse = mice),
         expand("{outdir}/cp_split/{mouse}/cp_size_barplot.pdf", outdir = outdir, mouse = mice),
 
         # the above are required to run first with the below files commented out to first generate the cp list which can then be called by those below
         [expand("{outdir}/mach2/{mouse}/{cp}/consensus_graph_filtered_by_threshold.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
-        [expand("{outdir}/mach2/{mouse}/{cp}/PRL-G-0.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         [expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         [expand("{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         expand("{outdir}/mach2/{mouse}/overall_transition_matrix.pdf", outdir=outdir, mouse=mice),
@@ -227,23 +230,17 @@ rule runMach2:
         colors = "{outdir}/machina_prep/{mouse}/{cp}/{mouse}_{cp}_colors.txt",
         tree = "{outdir}/machina_prep/{mouse}/{cp}/{mouse}_{cp}.tree",
     output:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph",
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph",
     params:
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
         scripts = config['scripts'],
-        threads = 150,
-        mem = '5G',
+        threads = 50,
+        mem = '1G',
+    conda:
+        f"{envs}/mach2.yaml"
     shell:
         """
-        # work around for now due to bad mach2 installation
-        source ~/miniconda3/etc/profile.d/conda.sh 
-        conda activate mach2
-
-        # load Gurobi license (specific to CSHL HPC; will need to be modified on other systems)
-        module load EBModules
-        module load Gurobi
-
         unique_tissues=$(cut -f2 {input.labeling} | sort | uniq)
         num_unique_tissues=$(echo "$unique_tissues" | wc -l)
 
@@ -278,7 +275,7 @@ rule runMach2:
 
 rule gatherMach2Results:
     input:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph"    # Not sure how to automate the primary tissue name in the input
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"    # Not sure how to automate the primary tissue name in the input
     output:
         mach2Combined = "{outdir}/mach2/{mouse}/{cp}/graph_results_combined.txt",
         mach2Consensus = "{outdir}/mach2/{mouse}/{cp}/consensus_graph.txt",
@@ -363,39 +360,39 @@ rule plotFilteredMach2ConsensusGraph:
         python {params.scripts}/plotting_scripts/plot_mach2_consensus_graph.py {input.mach2Filtered} {params.primaryTissue} {output.mach2Graph}
         """
 
-rule plotMach2AllGraphsAndTrees:
-    input:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph"
-    output:
-        mach2graphPlot = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.pdf"
-    params:
-        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
-        scripts = config['scripts'],
-        outputdir = "{outdir}/mach2/{mouse}/{cp}",
-        threads = 1,
-        mem = '1G',
-    conda:
-        f"{envs}/networkx3.yaml"
-    shell:
-        """
-        files=$(find {params.outputdir} -name "*.dot")
+# rule plotMach2AllGraphsAndTrees:
+#     input:
+#         mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
+#     output:
+#         mach2graphPlot = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.pdf"
+#     params:
+#         primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+#         scripts = config['scripts'],
+#         outputdir = "{outdir}/mach2/{mouse}/{cp}",
+#         threads = 1,
+#         mem = '1G',
+#     conda:
+#         f"{envs}/networkx3.yaml"
+#     shell:
+#         """
+#         files=$(find {params.outputdir} -name "*.dot")
 
-        for file in $files; do
-            outfile=$(echo $file | sed 's/.dot/.pdf/')
-            python {params.scripts}/plotting_scripts/plot_migration_graph_from_dot.py $file $outfile
-        done
+#         for file in $files; do
+#             outfile=$(echo $file | sed 's/.dot/.pdf/')
+#             python {params.scripts}/plotting_scripts/plot_migration_graph_from_dot.py $file $outfile
+#         done
 
-        # Need to touch output files to satisfy output, only if output with a different name exists
-        if [ $(ls {params.outputdir}/*-G-*.pdf | wc -l) -gt 0 ] && [ ! -f {output.mach2graphPlot} ]; then
-            touch {output.mach2graphPlot}
-        elif [ $(ls {params.outputdir}/*-G-*.dot | wc -l) -eq 0 ]; then
-            touch {output.mach2graphPlot}
-        fi
-        """
+#         # Need to touch output files to satisfy output, only if output with a different name exists
+#         if [ $(ls {params.outputdir}/*-G-*.pdf | wc -l) -gt 0 ] && [ ! -f {output.mach2graphPlot} ]; then
+#             touch {output.mach2graphPlot}
+#         elif [ $(ls {params.outputdir}/*-G-*.dot | wc -l) -eq 0 ]; then
+#             touch {output.mach2graphPlot}
+#         fi
+#         """
 
 rule callTransitionMatricesPerCP:
     input:
-        mach2graph = "{outdir}/mach2/{mouse}/{cp}/PRL-G-0.graph"
+        mach2graph = "{outdir}/mach2/{mouse}/{cp}/BDR-G-0.graph"
     output:
         allSolutionsTransitionMatrix = "{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv",
         allSeedingTopologies = "{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.csv",
@@ -406,7 +403,7 @@ rule callTransitionMatricesPerCP:
         threads = 1,
         mem = '1G',
     conda:
-        f"{envs}/networkx3.yaml"
+        f"{envs}/plotting.yaml"
     shell:
         """
         # use every tree file to call a transition matrix
@@ -502,8 +499,8 @@ rule plotSeedingTopologyPerCP:
 
 rule getOverallTransitionMatrixPerMouse:
     input:
-        # lambda wildcards: expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir='{outdir}', mouse='{mouse}', cp=get_elements_from_file(f"{wildcards.outdir}/cp_split/{wildcards.mouse}")),
-        "{outdir}/mach2/{mouse}/CP03/all_transition_matrix.csv"
+        lambda wildcards: expand("{outdir}/mach2/{mouse}/{cp}/all_transition_matrix.csv", outdir='{outdir}', mouse='{mouse}', cp=get_elements_from_file(f"{wildcards.outdir}/cp_split/{wildcards.mouse}")),
+        # "{outdir}/mach2/{mouse}/CP03/all_transition_matrix.csv"
     output:
         overallTransitionMatrix = "{outdir}/mach2/{mouse}/overall_transition_matrix.csv",
     params:
@@ -550,7 +547,7 @@ rule getOverallSeedingTopologyPerMouse:
         threads = 1,
         mem = '1G',
     conda:
-        f"{envs}/networkx3.yaml"
+        f"{envs}/plotting.yaml"
     shell:
         """
         seedingTopologyFiles=$(echo "{input}" | sed 's/ /,/g')

@@ -1,12 +1,10 @@
 
 # directory for input fastq files
-fastqPath: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/data/serio_pca_2p_2pr_data_3_7_25
-# fastqPath: /grid/siepel/home_norepl/staklins/bayesian_phylogenetic_metastasis/data/billy_bladder_cancer_data_bc10v0_7_1_24/fastq_raw
-# fastqPath: /grid/siepel/home_norepl/staklins/bayesian_phylogenetic_metastasis/data/billy_bladder_cancer_data_bc10v2_3_14_25/fastq_raw
+fastqPath: /grid/siepel/home/hassett/snakemake_evotracer_machina/data/serio_11_24_25
 
 # directory for output
-outdir: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/results/analysis_on_3_7_25_serio_pca_2p_2pr_data_3_7_25
-# outdir: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/results/analysis_on_3_14_25_billy_bladder_cancer_data_old_bc10v0_and_new_bc10v2
+outdir: /grid/siepel/home/staklins/projects/crispr_barcode/results/ryan_prostate_2p_2pr/analysis_on_11_24_25_serio_data
+
 
 # evotracer parameters
 asvThreshold: 3
@@ -39,6 +37,11 @@ primaryTissue:
   MMUS7288: BDR
   MMUS7280: BDR
   MMUS7235: BDR
+  MMUS7182: BDR
+  MMUS7200: BDR
+  MMUS7235: BDR
+  MMUS7239: BDR
+  MMUS7293: BDR
   MMUS7317: PRL
   MMUS7323: PRL
   MMUS7351: PRL
@@ -50,8 +53,9 @@ primaryTissue:
   MMUS7447: PRL
   MMUS7490: PRL
   MMUS7507: PRL
+  MMUS7487: PRL
 
 
 # paths to scripts and executables
-scripts: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/scripts
-envs: /grid/siepel/home_norepl/staklins/snakemake_evotracer_machina/envs
+scripts: /grid/siepel/home/staklins/projects/crispr_barcode/snakemake_evotracer_machina/scripts
+envs: /grid/siepel/home/staklins/projects/crispr_barcode/snakemake_evotracer_machina/envs
