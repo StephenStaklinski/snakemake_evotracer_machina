@@ -3,8 +3,7 @@
 snakemake \
 -n \
 --use-singularity \
---singularity-args "--bind $HOME/" \
---use-conda \
+--singularity-args "--bind $HOME/ --bind $GRB_LICENSE_FILE:/mnt/gurobi.lic --env GRB_LICENSE_FILE=/mnt/gurobi.lic" \
 --snakefile ./Snakefile \
 --configfile ./config/config.yaml \
 --printshellcmds \

@@ -1,0 +1,32 @@
+Bootstrap: docker
+From: python:3.12-slim
+
+%post
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        graphviz \
+        libgraphviz-dev \
+        gcc \
+        g++ \
+        git \
+        build-essential \
+        less \
+        vim \
+        nano \
+        procps \
+        wget \
+        curl \
+        ca-certificates \
+        time && \
+        rm -rf /var/lib/apt/lists/*
+
+    pip install --no-cache-dir gurobipy
+    pip install --no-cache-dir mach2
+
+%runscript
+    #!/bin/bash
+    "$@"
+
+
+
+

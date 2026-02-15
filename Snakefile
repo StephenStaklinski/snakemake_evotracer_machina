@@ -4,7 +4,8 @@ from glob import glob
 # get mouse ids and fastq files from input fastq dir
 mice = []
 mouse_fastqs = {}
-for file in glob(os.path.join(config['fastqPath'], "*.fastq.gz")):
+suffix = "*.fastq"
+for file in glob(os.path.join(config['fastqPath'], suffix)):
     mouse = os.path.basename(file).split("_")[0]
     if mouse not in mice:
         mice.append(mouse)
@@ -19,7 +20,11 @@ def get_elements_from_file(path):
     with open(filename) as f:
         cps = [line.strip() for line in f if set(list(line.strip().replace("CP", ""))) != set('0')]
 
-    cps = [cp for cp in cps if cp != "CP01"]
+    # to remove CP01 if needed
+    # cps = [cp for cp in cps if cp != "CP01"]
+
+    # Temporary to only run specific CPs
+    cps = ["CP01", "CP02", "CP03"]
 
     return cps
 
@@ -41,6 +46,7 @@ rule all:
         [expand("{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         expand("{outdir}/mach2/{mouse}/overall_transition_matrix.pdf", outdir=outdir, mouse=mice),
         expand("{outdir}/mach2/{mouse}/overall_seeding_topologies.pdf", outdir=outdir, mouse=mice),
+        [expand("{outdir}/cp_split_expanded_tissues/{mouse}/{cp}/expanded_matrix.tsv", outdir=outdir, mouse=m, cp=get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
 
 rule runEvotracer:
     input:
@@ -174,7 +180,7 @@ rule plotCpSizeBars:
         threads = 1,
         mem = '1G',
     singularity:
-        f"{envs}/networkx.sif"
+        f"{envs}/graphposterior.sif"
     shell:
         """
         # Count the number of ASVs in each CP for each mouse
@@ -206,13 +212,12 @@ rule prepMachina:
     params:
         primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
         outputdir = "{outdir}/machina_prep/{mouse}/{cp}",
-        outprefix = "{mouse}_{cp}",
         outdir = "{outdir}",
         scripts = config['scripts'],
         threads = 1,
         mem = '1G'
     singularity:
-        f"{envs}/simulate.sif"
+        f"{envs}/graphposterior.sif"
     shell:
         """
         tissuesTsv={wildcards.outdir}/cp_split/{wildcards.mouse}/{wildcards.cp}/tissues.tsv
@@ -220,7 +225,7 @@ rule prepMachina:
         # modify the tissues so that there is always only one primaryTissue name, so if the primaryTissue name is found in the tissues with additional A,B or 1,2 etc. labels then will all be turned to primary label only
 
         # prep inputs
-        python {params.scripts}/machina_scripts/prep_machina.py {input.evotracerCassiopeiaTree} {params.primaryTissue} $tissuesTsv {params.outputdir} {params.outprefix}
+        python {params.scripts}/machina_scripts/prep_machina.py {input.evotracerCassiopeiaTree} {params.primaryTissue} $tissuesTsv {params.outputdir} {wildcards.mouse}_{wildcards.cp}
         """
 
 
@@ -237,8 +242,8 @@ rule runMach2:
         scripts = config['scripts'],
         threads = 50,
         mem = '1G',
-    conda:
-        f"{envs}/mach2.yaml"
+    singularity:
+        f"{envs}/mach2.sif"
     shell:
         """
         unique_tissues=$(cut -f2 {input.labeling} | sort | uniq)
@@ -353,8 +358,8 @@ rule plotFilteredMach2ConsensusGraph:
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         threads = 1,
         mem = '1G',
-    conda:
-        f"{envs}/networkx3.yaml"
+    singularity:
+        f"{envs}/graphposterior.sif"
     shell:
         """
         python {params.scripts}/plotting_scripts/plot_mach2_consensus_graph.py {input.mach2Filtered} {params.primaryTissue} {output.mach2Graph}
@@ -371,8 +376,8 @@ rule plotFilteredMach2ConsensusGraph:
 #         outputdir = "{outdir}/mach2/{mouse}/{cp}",
 #         threads = 1,
 #         mem = '1G',
-#     conda:
-#         f"{envs}/networkx3.yaml"
+#     singularity:
+#         f"{envs}/graphposterior.sif"
 #     shell:
 #         """
 #         files=$(find {params.outputdir} -name "*.dot")
@@ -402,8 +407,8 @@ rule callTransitionMatricesPerCP:
         outputdir = "{outdir}/mach2/{mouse}/{cp}",
         threads = 1,
         mem = '1G',
-    conda:
-        f"{envs}/plotting.yaml"
+    singularity:
+        f"{envs}/graphposterior.sif"
     shell:
         """
         # use every tree file to call a transition matrix
@@ -509,7 +514,7 @@ rule getOverallTransitionMatrixPerMouse:
         threads = 1,
         mem = '1G',
     singularity:
-        f"{envs}/networkx.sif"
+        f"{envs}/graphposterior.sif"
     shell:
         """
         transitionMatrixFiles=$(echo "{input}" | sed 's/ /,/g')
@@ -546,8 +551,8 @@ rule getOverallSeedingTopologyPerMouse:
         outputdir = "{outdir}/mach2/{mouse}",
         threads = 1,
         mem = '1G',
-    conda:
-        f"{envs}/plotting.yaml"
+    singularity:
+        f"{envs}/graphposterior.sif"
     shell:
         """
         seedingTopologyFiles=$(echo "{input}" | sed 's/ /,/g')
@@ -571,5 +576,24 @@ rule plotOverallSeedingTopologyPerMouse:
     shell:
         """
         Rscript {params.scripts}/plotting_scripts/5_machina_analysis/04_machina_seeding_topology_v1.R "{input.overallSeedingTopologies}" "{output.overallSeedingTopologiesPlot}"
+        """
+
+rule expandMatrixMultipleTissues:
+    input:
+        cpList = "{outdir}/cp_split/{mouse}/cp_list.txt"
+    output:
+        expandedMatrix = "{outdir}/cp_split_expanded_tissues/{mouse}/{cp}/expanded_matrix.tsv",
+        expandedTissues = "{outdir}/cp_split_expanded_tissues/{mouse}/{cp}/expanded_tissues.csv",
+    params:
+        scripts = config['scripts'],
+        threads = 1,
+        mem = '1G'
+    singularity:
+        f"{envs}/graphposterior.sif"
+    shell:
+        """
+        matrixTsv={wildcards.outdir}/cp_split/{wildcards.mouse}/{wildcards.cp}/matrix.tsv
+        tissuesTsv={wildcards.outdir}/cp_split/{wildcards.mouse}/{wildcards.cp}/tissues.tsv
+        python {params.scripts}/expand_matrix_multiple_tissues.py $matrixTsv $tissuesTsv {output.expandedMatrix} {output.expandedTissues}
         """
 

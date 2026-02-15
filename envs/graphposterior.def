@@ -1,0 +1,42 @@
+Bootstrap: docker
+From: python:3.11-slim
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export PYTHONPATH=/opt/graphposterior:$PYTHONPATH
+    export PATH="${PATH}:/opt/graphposterior/graphposterior/simulator_cpp/build"
+
+%post
+    # System deps (keep minimal; add gcc/g++ if you need compiled extensions)
+    apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        ca-certificates \
+        gcc \
+        g++ \
+        make \
+        cmake \
+        python3-dev \
+        python3-pyqt5 \
+        qtbase5-dev \
+        libx11-6 \
+        libxrender1 \
+        libxext6 \
+        libsm6 \
+        graphviz \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Install graphposterior
+    cd /opt
+    git clone https://github.com/CshlSiepelLab/graphposterior.git
+    cd graphposterior
+    pip install --no-cache-dir -e .
+
+    # Install simulation executable for graphposterior usage
+    cd graphposterior/simulator_cpp
+    mkdir build
+    cd build
+    cmake ..
+    make
+
+%runscript
+    exec python "$@"

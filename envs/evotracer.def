@@ -1,0 +1,64 @@
+Bootstrap: docker
+From: ubuntu:20.04
+
+%post
+    # Install system dependencies
+    apt-get update -y
+    apt-get install -y --no-install-recommends software-properties-common dirmngr wget locales
+    add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -cs) universe"
+    add-apt-repository -y ppa:ubuntugis/ppa
+    add-apt-repository ppa:ubuntu-toolchain-r/test
+    locale-gen en_US.UTF-8
+    update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+    apt-get install -y --no-install-recommends git build-essential gcc-11 g++-11 gfortran-11 gfortran make default-jdk default-jre
+    apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev libgdal-dev libfontconfig1-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libharfbuzz-dev libfribidi-dev libsodium-dev
+
+    # Install miniconda
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
+    bash /tmp/miniconda.sh -b -p /opt/miniconda
+    rm /tmp/miniconda.sh
+    /opt/miniconda/bin/conda init bash
+
+    # Install Cassiopeia
+    /opt/miniconda/bin/conda install -y python==3.8
+    /opt/miniconda/bin/pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
+    /opt/miniconda/bin/pip install umi_tools
+    
+    # Install R
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+    apt install -y --no-install-recommends r-base
+
+    # Install R packages from CRAN
+    Rscript -e "install.packages(c('BiocManager', 'devtools'), dependencies=TRUE, repos='https://cloud.r-project.org')"
+    Rscript -e "BiocManager::install('ggtree')"
+    Rscript -e "devtools::install_github('Nowak-Lab/EvoTraceR', dependencies=TRUE)"
+
+    # Install Trimmomatic
+    mkdir -p /opt/trimmomatic
+    wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip -O /opt/trimmomatic/Trimmomatic-0.39.zip
+    unzip /opt/trimmomatic/Trimmomatic-0.39.zip -d /opt/trimmomatic
+    rm /opt/trimmomatic/Trimmomatic-0.39.zip
+
+    # Install flash
+    wget http://ccb.jhu.edu/software/FLASH/FLASH-1.2.11.tar.gz -O /tmp/flash.tar.gz
+    tar -xzf /tmp/flash.tar.gz -C /tmp
+    cd /tmp/FLASH-1.2.11
+    make
+    cp /tmp/FLASH-1.2.11/flash /opt/miniconda/bin/
+    rm -rf /tmp/FLASH-1.2.11 /tmp/flash.tar.gz
+
+%environment
+    # Set PATH to include the Conda bin directory and FLASH binary
+    export PATH=/opt/miniconda/bin:/opt/miniconda/bin/flash:$PATH
+
+    # Set an environment variable to easily access the Trimmomatic path
+    export TRIMMOMATIC_PATH=/opt/trimmomatic/Trimmomatic-0.39/trimmomatic-0.39.jar
+
+%runscript
+    #!/bin/bash
+    "$@"
+
+
+
+

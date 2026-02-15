@@ -4,12 +4,14 @@ A Snakemake pipeline for analyzing CRISPR lineage tracing data from cancer metas
 
 ## Overview
 
-This pipeline processes raw FASTQ files from CRISPR lineage tracing experiments to reconstruct and analyze tumor evolution and metastasis patterns. It combines two powerful tools:
+This pipeline processes raw FASTQ files from CRISPR lineage tracing experiments to reconstruct and analyze tumor evolution and metastasis patterns. It combines several tools:
 
-1. **EvoTraceR**: [EvoTraceR](https://github.com/Nowak-Lab/EvoTraceR) processes raw sequencing data to reconstruct phylogenetic trees and analyze clonal evolution
-2. **MACH2**: [MACH2](https://github.com/elkebir-group/MACH2) analyzes metastasis patterns and reconstructs seeding topologies
+1. **EvoTraceR**: [EvoTraceR](https://github.com/Nowak-Lab/EvoTraceR) processes raw sequencing data and uses Cassiopeia-Greedy from [Cassiopeia](https://github.com/YosefLab/Cassiopeia) to reconstruct cell-lineage trees.
+2. **MACH2**: [MACH2](https://github.com/elkebir-group/MACH2) infers a set of possible migration histories.
+3. **BEAM**: [BEAM](https://github.com/CshlSiepelLab/BEAM) infers a joint cell-lineage tree and migration history posterior distribution using Markov Chain Monte Carlo (MCMC).
+4. **VINE**: [VINE](https://github.com/CshlSiepelLab/VINE) approximates a joint cell-lineage tree and migration history posterior distribution using variational inference.
 
-## Pipeline structure
+### Pipeline structure
 
 The pipeline consists of several key components:
 
@@ -18,37 +20,21 @@ The pipeline consists of several key components:
 - `envs/`: Environment definitions for different pipeline steps
 - `scripts/`: Helper scripts for data processing
 
-## Key features
-
-- Automated processing of raw FASTQ files
-- Phylogenetic tree reconstruction
-- Clonal population analysis
-- Metastasis pattern analysis
-- Visualization of results including:
-  - Clonal dispersal bargraphs
-  - Consensus migration graphs
-  - Transition matrices
-  - Seeding topologies
-
-## Setup and requirements
 
 ### Dependencies
 
-The pipeline uses a combination of:
-- Singularity containers for reproducible environments
-- Conda environments for specific tools
-- Gurobi optimizer (required for MACH2)
+The pipeline requires:
+- Build singularity containers from within `envs/`
+- Optain a Gurobi optimizer license (required for MACH2)
+- Install BEAM
 
 ### Configuration
 
-Before running the pipeline:
-1. Update `config/config.yaml` with:
-   - Input FASTQ file paths
-   - Output directory
-   - Reference sequences and parameters
-   - Primary tissue definitions
-2. Ensure you have the necessary Singularity images (contact staklins@cshl.edu if needed)
-3. Set up Gurobi license for MACH2 analysis
+Before running the pipeline, update `config/config.yaml` with:
+- Input FASTQ file paths
+- Output directory
+- Reference sequences and parameters
+- Primary tissue definitions
 
 ## Usage
 
@@ -58,16 +44,8 @@ Before running the pipeline:
    ./submit.sh
    ```
 
-## Output
-
-The pipeline generates several types of output files:
-- Phylogenetic trees and character matrices
-- Clonal population statistics
-- Metastasis transition matrices
-- Visualization plots in PDF format
-
 ## Note on environment management
 
-The pipeline uses a combination of Singularity and Conda for environment management. Due to size constraints, Singularity images are not included in the repository and must be built or obtained separately. The MACH2 step requires a Gurobi license, which needs to be configured according to the user's setup.
+Due to size constraints, Singularity images are not included in the repository and must be built from the provided `.def` files or obtained separately (from staklins@cshl.edu). The MACH2 step requires a Gurobi license, which needs to be configured according to the user's setup. BEAM must be installed on the users system.
 
 Other changes may need to be made to the pipeline if not using it on the CSHL HPC server.
