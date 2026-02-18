@@ -1,0 +1,68 @@
+Bootstrap: docker
+From: rockylinux:8
+
+%files
+    vine.def /opt/vine.def
+
+%post
+    # Install system libraries
+    set -euxo pipefail
+
+    dnf -y update
+
+    # Tools to manage repos
+    dnf -y install dnf-plugins-core
+
+    # Enable Rocky 8 repos that commonly contain -devel libs
+    # (Rocky 8 uses "powertools"; some images also accept "crb")
+    dnf config-manager --set-enabled powertools || true
+    dnf config-manager --set-enabled crb || true
+    dnf -y install epel-release || true
+
+    dnf -y install \
+        blas-devel \
+        lapack-devel \
+        pcre-devel \
+        ca-certificates \
+        wget \
+        git \
+        gcc \
+        gcc-c++ \
+        make \
+        gcc-gfortran \
+        libcurl-devel \
+        openssl-devel \
+        libxml2-devel \
+        cmake \
+        time
+
+    # Remove intermediate files to keep container size small
+    dnf clean all
+    rm -rf /var/cache/dnf
+
+    # Ensure install directory exists
+    mkdir -p /opt
+
+    # Install PHAST
+    cd /opt
+    git clone https://github.com/CshlSiepelLab/phast.git
+    cd phast
+    mkdir build
+    cmake -S . -B build -DCMAKE_EXE_LINKER_FLAGS="-lm"
+    cmake --build build
+    cmake --install build --prefix ./
+
+    # Install VINE
+    cd /opt
+    git clone https://github.com/CshlSiepelLab/vine.git
+    cd vine
+    mkdir build
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DPHAST_ROOT=../phast -DCMAKE_EXE_LINKER_FLAGS="-lm"
+    cmake --build build
+    cmake --install build --prefix ./
+
+%environment
+    export PATH=/opt/vine/bin:/opt/phast/bin:$PATH
+
+%runscript
+    exec "$@"

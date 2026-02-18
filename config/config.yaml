@@ -1,31 +1,30 @@
 
-# directory for input fastq files
+# Directory for input fastq files
 fastqPath: /grid/siepel/home/hassett/snakemake_evotracer_machina/data/serio_11_24_25
 
-# directory for output
+# Directory for output
 outdir: /grid/siepel/home/staklins/projects/crispr_barcode/results/ryan_prostate_2p_2pr/analysis_on_11_24_25_serio_data
 
 
-# evotracer parameters
+# Evotracer parameters
 asvThreshold: 3
 
-# # evotracer parameters for BC10v0
+# # Evotracer parameters for BC10v0
 # ref_name: "BC10v0"
 # ref_seq: "TCTACACGCGCGTTCAACCGAGGAAAACTACACACACGTTCAACCACGGTTTTTTACACACGCATTCAACCACGGACTGCTACACACGCACTCAACCGTGGATATTTACATACTCGTTCAACCGTGGATTGTTACACCCGCGTTCAACCAGGGTCAGATACACCCACGTTCAACCGTGGTACTATACTCGGGCATTCAACCGCGGCTTTCTGCACACGCCTACAACCGCGGAACTATACACGTGCATTCACCCGTGGATC"
 # ref_flank_right: "CCCGTGGATC"
 
-# evotracer parameters for BC10v2
+# Evotracer parameters for BC10v2
 ref_name: "BC10v2"
 ref_seq: "TCTACACGCGCGTTCAACCGAGGAAAACTACACACGCATTCAACCACGGTTTATTACACGCACATTCAACCGTGGACTGCTACACACGCGCTCAACCACGGATATTTACGCACACGTTCAACCGCGGATTGTTACACCCGCATTCAACCGAGGTCACCTACACCCGCACTCAACCGGGGTACGCGACACGTGCGATCAACCGAGGCTTACTACCCGCACGTTCAACTGGGGAACACTGCACGCGAGTTCGACCGGGGATC"
 ref_flank_right: "ACCGGGGATC"
 
-# same for both bc10v0 and bc10v2
+# Same for both bc10v0 and bc10v2
 ref_flank_left: "TCTAC"
 ref_cut_sites: "17,43,69,95,121,147,173,199,225,251"
 ref_border_sites: "1,26,52,78,104,130,156,182,208,234"
 
 
-# machina parameters
 primaryTissue:
   MMUS1834: BDR
   MMUS3012: BDR
@@ -55,7 +54,12 @@ primaryTissue:
   MMUS7507: PRL
   MMUS7487: PRL
 
+experimentTime:
+  MMUS7487: 367
 
-# paths to scripts and executables
+# Path to beam template xml file
+beamTemplate: /grid/siepel/home/staklins/projects/crispr_barcode/snakemake_evotracer_machina/beam_template.xml
+
+# Paths to scripts and environments
 scripts: /grid/siepel/home/staklins/projects/crispr_barcode/snakemake_evotracer_machina/scripts
 envs: /grid/siepel/home/staklins/projects/crispr_barcode/snakemake_evotracer_machina/envs

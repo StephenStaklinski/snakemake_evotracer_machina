@@ -46,7 +46,8 @@ rule all:
         [expand("{outdir}/mach2/{mouse}/{cp}/all_seeding_topologies.pdf", outdir = outdir, mouse = m, cp = get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
         expand("{outdir}/mach2/{mouse}/overall_transition_matrix.pdf", outdir=outdir, mouse=mice),
         expand("{outdir}/mach2/{mouse}/overall_seeding_topologies.pdf", outdir=outdir, mouse=mice),
-        [expand("{outdir}/cp_split_expanded_tissues/{mouse}/{cp}/expanded_matrix.tsv", outdir=outdir, mouse=m, cp=get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        [expand("{outdir}/vine/{mouse}/{cp}/vine_probability_graph.csv", outdir=outdir, mouse=m, cp=get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        [expand("{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}.term", outdir=outdir, mouse=m, cp=get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
 
 rule runEvotracer:
     input:
@@ -597,3 +598,116 @@ rule expandMatrixMultipleTissues:
         python {params.scripts}/expand_matrix_multiple_tissues.py $matrixTsv $tissuesTsv {output.expandedMatrix} {output.expandedTissues}
         """
 
+# Run VINE in tissue migration mode
+rule runVine:
+    input:
+        expandedMatrix = "{outdir}/cp_split_expanded_tissues/{mouse}/{cp}/expanded_matrix.tsv",
+        expandedTissues = "{outdir}/cp_split_expanded_tissues/{mouse}/{cp}/expanded_tissues.csv",
+    output:
+        vineNwk = "{outdir}/vine/{mouse}/{cp}/trees.nwk",
+        vineMean = "{outdir}/vine/{mouse}/{cp}/mean_tree.nwk",
+        vineDot = "{outdir}/vine/{mouse}/{cp}/migration_graphs.dot",
+        vineNex = "{outdir}/vine/{mouse}/{cp}/trees_with_tissues.nex",
+        vineLog = "{outdir}/vine/{mouse}/{cp}/vine.log"
+    params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        scripts = config['scripts'],
+        outputdir = "{outdir}/vine/{mouse}/{cp}",
+        threads = 1,
+        mem = '10G',
+    singularity:
+        f"{envs}/vine.sif"
+    shell:
+        """
+        vine -M 400 -c 100 -v 0 \
+            -i CRISPR {input.expandedMatrix} \
+            --log {output.vineLog} \
+            --mean {output.vineMean} \
+            --migration {input.expandedTissues} \
+            --primary {params.primaryTissue} \
+            --sample-graphs {output.vineDot} \
+            --labeled-trees {output.vineNex} > {output.vineNwk}
+        """
+
+rule postprocessVine:
+    input:
+        vineNex = "{outdir}/vine/{mouse}/{cp}/trees_with_tissues.nex",
+    output:
+        vineProbGraph = "{outdir}/vine/{mouse}/{cp}/vine_probability_graph.csv",
+        threshold50plot = "{outdir}/vine/{mouse}/{cp}/vine_50.pdf",
+        threshold75plot = "{outdir}/vine/{mouse}/{cp}/vine_75.pdf",
+        threshold90plot = "{outdir}/vine/{mouse}/{cp}/vine_90.pdf",
+    params:
+        stateKey = "state",
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        outputPrefix = "{outdir}/vine/{mouse}/{cp}/vine",
+        scripts = config['scripts'],
+        threads = 1,
+        mem = '10G',
+    singularity:
+        f"{envs}/graphposterior.sif"
+    shell:
+        """
+        python {params.scripts}/beam_postprocessing.py \
+            {input.vineNex} \
+            {params.stateKey} \
+            {params.primaryTissue} \
+            1 \
+            0.0 \
+            {params.outputPrefix}
+        """
+
+rule runBeam:
+    input:
+        expandedMatrix = "{outdir}/cp_split_expanded_tissues/{mouse}/{cp}/expanded_matrix.tsv",
+        expandedTissues = "{outdir}/cp_split_expanded_tissues/{mouse}/{cp}/expanded_tissues.csv",
+        vineMean = "{outdir}/vine/{mouse}/{cp}/mean_tree.nwk",
+    output:
+        beamTerm = "{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}.term",
+        beamTrees = "{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}.trees",
+        beamLog = "{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}.log",
+    params:
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        experimentTime = lambda wildcards: config['experimentTime'][wildcards.mouse],
+        beamTemplate = config['beamTemplate'],
+        scripts = config['scripts'],
+        outputdir = "{outdir}/beam/{mouse}/{cp}",
+        outputPrefix = "beam_{mouse}_{cp}",
+        threads = 5,
+        mem = '2G',
+    shell:
+        """
+        cp {params.beamTemplate} {params.outputdir}/{params.outputPrefix}.xml
+
+        uniqueTissues=$(cut -d',' -f2 {input.expandedTissues} | sort | uniq)
+        uniqueTissuesNoPrimary=$(echo "$uniqueTissues" | grep -v "{params.primaryTissue}")
+        rootTissueFreqs="1"
+        for tissue in $uniqueTissuesNoPrimary; do
+            rootTissueFreqs="$rootTissueFreqs 0"
+        done
+        sed -i "s/\$(rootTissueFreqs)/$rootTissueFreqs/" {params.outputdir}/{params.outputPrefix}.xml
+
+        numTissuesNoPrimary=$(echo "$uniqueTissuesNoPrimary" | grep -c .)
+        numTissues=$(( $numTissuesNoPrimary + 1))
+        numTissueRates=$(( ((numTissues * numTissues) - numTissues) / 2 ))
+
+        # If a previous state file exists, resume the run from there
+        if [[ -f "{params.outputdir}/{params.outputPrefix}.xml.state" ]]; then
+            runflag="-resume"
+        else
+            runflag="-overwrite"
+        fi
+
+        beast -seed 1 -working $runflag -threads {params.threads} \
+            -D barcodeTsv=\"{input.expandedMatrix}\" \
+            -D tissuesCsv=\"{input.expandedTissues}\" \
+            -D startingNewickFile=\"{input.vineMean}\" \
+            -D primaryTissue={params.primaryTissue} \
+            -D originTime={params.experimentTime} \
+            -D numTissueRates=$numTissueRates \
+            -D mcmcLength=100000000 \
+            -D sampleFreq=10000 \
+            -D outputPrefix=\"{params.outputPrefix}\" \
+            {params.outputdir}/{params.outputPrefix}.xml \
+            > {output.beamTerm}
+        """

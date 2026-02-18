@@ -1,0 +1,173 @@
+<beast beautitemplate='MultiTypeBirthDeath' beautistatus='' namespace="beast.base.evolution.alignment:beast.base.inference:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel" required="BEAST.base" version="2.7">
+
+<!-- Class name shortcuts -->
+<map name="Uniform" >beast.base.inference.distribution.Uniform</map>
+<map name="Exponential" >beast.base.inference.distribution.Exponential</map>
+<map name="prior" >beast.base.inference.distribution.Prior</map>
+
+
+<!-- Start user inputs -->
+<!-- Path to barcode editing data in TSV matrix format with sites as columns.
+The unedited state is 0 and missing data state is -1. -->
+<data id="alignment" spec="beam.fileio.AlignmentFromXSV" fileName="$(barcodeTsv)">
+    <userDataType spec="beam.datatype.EditData"/>
+</data>
+
+<!-- Path to known tip tissue labels as a CSV file with tipname,tissue format.
+Also, specification of which tissue is the primary tissue -->
+<data id="tissue" spec="beam.fileio.TissueLabelsFromXSV" fileName="$(tissuesCsv)" sep="," skipHeaderRow="false">
+    <userDataType id="tissueDatatype" spec="beam.datatype.TissueData" primaryTissue="$(primaryTissue)"/>
+</data>
+
+<!-- Length of the experiment (+0.0001 for numerical stability) in time units that the tree will be inferred in -->
+<parameter id="originTime" spec="parameter.RealParameter" estimate="false">$(originTime).0001</parameter>
+
+<!-- Equilibrium frequencies for the tissues at the start of the experiment.
+Typically this should be left as 1 0 0 ... 0 format for n tissues to assume the tumor started in the primary tissue -->
+<frequencies id="rootTissueFrequencies" spec="beast.base.evolution.substitutionmodel.Frequencies" frequencies="$(rootTissueFreqs)" estimate="false"/>
+
+<!-- NOTE: Users will also need to update the starting newick string below.
+Other changes to parameters below should not be necessary for a basic run, 
+but they can be made to improve the starting point for MCMC or change priors to
+better match biological expectations. This may require a general understanding
+of BEAST2. -->
+<!-- End user inputs -->
+
+
+<run id="mcmc" spec="MCMC" chainLength="$(mcmcLength)">
+        <state id="state" spec="State" storeEvery="5000">
+            <stateNode id="tree" spec="beam.tree.StartingTreeFromNewick" taxa="@alignment" origin="@originTime" IsLabelledNewick="true" newickFile="$(startingNewickFile)">
+                <taxonset id="taxonset" spec="TaxonSet" alignment="@alignment"/>
+            </stateNode>
+            <parameter id="silencingRate" spec="parameter.RealParameter" lower="0" name="stateNode" upper="1000">0.1</parameter>
+            <parameter id="clockRate.c" spec="parameter.RealParameter" name="stateNode">0.01</parameter>
+            <parameter id="relativeGeoRates.s:tissue" spec="parameter.RealParameter" lower="0" dimension="$(numTissueRates)" name="stateNode">1</parameter>
+            <parameter id="traitClockRate" spec="parameter.RealParameter" name="stateNode">0.01</parameter>
+            <parameter id="piPrimaryTissueFreq" spec="parameter.RealParameter" estimate="true" lower="0" upper="1" name="stateNode">0.5</parameter>
+            <parameter id="birthDiffRate" spec="parameter.RealParameter" lower="1e-12" name="stateNode">0.005</parameter>
+            <parameter id="relativeDeathRate" spec="parameter.RealParameter" lower="0" name="stateNode" upper="0.999999">0.25</parameter>
+        </state>
+        
+        
+        <distribution id="posterior" spec="CompoundDistribution">
+            
+            <distribution id="prior" spec="CompoundDistribution">
+
+                <distribution id="birthDeath" spec="beast.base.evolution.speciation.BirthDeathGernhard08Model" 
+                    tree="@tree" originHeight="@originTime" birthDiffRate="@birthDiffRate" relativeDeathRate="@relativeDeathRate"/>
+
+                <prior id="silencingRatePrior" name="distribution" x="@silencingRate">
+                    <Exponential name="distr">
+                        <parameter spec="parameter.RealParameter" estimate="false" name="mean">0.1</parameter>
+                    </Exponential>
+                </prior>
+
+                <prior id="ClockPrior.c" name="distribution" x="@clockRate.c">
+                    <Exponential name="distr">
+                        <parameter spec="parameter.RealParameter" estimate="false" name="mean">0.1</parameter>
+                    </Exponential>
+                </prior>
+
+                <prior id="relativeGeoRatesPrior.s:tissue" name="distribution" x="@relativeGeoRates.s:tissue">
+                    <Exponential name="distr">
+                        <parameter spec="parameter.RealParameter" estimate="false" name="mean">1</parameter>
+                    </Exponential>
+                </prior>
+
+                <prior id="geoclockPrior.c:tissue" name="distribution" x="@traitClockRate">
+                    <Exponential name="distr">
+                        <parameter spec="parameter.RealParameter" estimate="false" name="mean">0.1</parameter>
+                    </Exponential>
+                </prior>
+
+                <prior id="piPrimaryTissueFreqPrior" name="distribution" x="@piPrimaryTissueFreq">
+                    <Uniform name="distr" lower="0" upper="1"/>
+                </prior>
+
+                <prior id="birthDiffRatePrior" name="distribution" x="@birthDiffRate">
+                    <Exponential name="distr">
+                        <parameter spec="parameter.RealParameter" estimate="false" name="mean">1.0</parameter>
+                    </Exponential>
+                </prior>
+
+                <prior id="relativeDeathRatePrior" name="distribution" x="@relativeDeathRate">
+                    <Uniform name="distr" lower="0" upper="0.999999"/>
+                </prior>
+
+            </distribution>
+            
+            
+            <distribution id="likelihood" spec="CompoundDistribution" useThreads="true">
+                
+                <distribution id="treeLikelihood" spec="beam.likelihood.IrreversibleTreeLikelihood" origin="@originTime" data="@alignment" tree="@tree">
+                    <siteModel spec="SiteModel" id="siteModel" mutationRate="1" gammaCategoryCount="1">
+                        <substModel id="substModel" spec="beam.substitutionmodel.CrisprSubstitutionModel" silencingRate="@silencingRate" data="@alignment">
+                            <frequencies spec="beast.base.evolution.substitutionmodel.Frequencies" frequencies="1" estimate="false"/>
+                        </substModel>
+                    </siteModel>
+                    <branchRateModel spec="beast.base.evolution.branchratemodel.StrictClockModel" clock.rate="@clockRate.c"/>
+                </distribution>
+                
+                <distribution id="traitLikelihood" spec="beam.likelihood.BeagleAncestralTissueLikelihood" origin="@originTime" tag="location" tree="@tree" data="@tissue">
+                    <siteModel id="geoSiteModel.s:tissue" spec="SiteModel" gammaCategoryCount="1" mutationRate="1">
+                        <substModel id="substModelMigration" spec="beam.substitutionmodel.TissueSubstitutionModel" rates="@relativeGeoRates.s:tissue" pi="@piPrimaryTissueFreq" frequencies="@rootTissueFrequencies"/>
+                    </siteModel>
+                    <branchRateModel id="StrictClockModel.c:tissue" spec="beast.base.evolution.branchratemodel.StrictClockModel" clock.rate="@traitClockRate"/>
+                </distribution>
+                
+            </distribution>
+
+        </distribution>
+
+    <!-- Operators defining what proposals are made during MCMC iterations -->
+    <!-- Tree topology moves -->
+    <operator id="exchangeNarrow" spec="Exchange" isNarrow="true" tree="@tree" weight="15"/>
+    <operator id="exchangeWide" spec="Exchange" isNarrow="false" tree="@tree" weight="3"/>
+    <operator id="wilsonBalding" spec="WilsonBalding" tree="@tree" weight="1"/>
+    <!-- Branch-length / node-height moves -->
+    <operator id="uniform" spec="Uniform" tree="@tree" weight="10"/>
+    <operator id="subtreeSlide" spec="SubtreeSlide" tree="@tree" weight="10"/>
+    <operator id="subtreeSlideLarge" spec="SubtreeSlide" tree="@tree" size="15" weight="3"/>
+    <!-- Operators on barcode editing parameters-->
+    <operator id="clockRateScaler" spec="ScaleOperator" parameter="@clockRate.c" scaleFactor="0.8" weight="3"/>
+    <operator id="silencingRateScaler" spec="ScaleOperator" parameter="@silencingRate" scaleFactor="0.8" weight="3"/>
+    <!-- Operators on tissue model parameters -->
+    <operator id="georateScaler.s:tissue" spec="ScaleOperator" parameter="@relativeGeoRates.s:tissue" scaleAllIndependently="true" scaleFactor="0.9" weight="10"/>
+    <operator id="tissueClockRateScaler" spec="ScaleOperator" parameter="@traitClockRate" scaleFactor="0.8" weight="3"/>
+    <operator id="piPrimaryTissueFreqScaler" spec="ScaleOperator" parameter="@piPrimaryTissueFreq" scaleFactor="0.8" weight="3"/>
+    <!-- Operators on phylodynamic prior parameters -->
+    <operator id="birthDiffRateScaler" spec="ScaleOperator" parameter="@birthDiffRate" scaleFactor="0.8" weight="3"/>
+    <operator id="relativeDeathRateScaler" spec="ScaleOperator" parameter="@relativeDeathRate" scaleFactor="0.8" weight="3"/>
+
+    <!-- Loggers -->
+        <logger id="tracelog" spec="Logger" fileName="$(outputPrefix).log" logEvery="$(sampleFreq)" model="@posterior" sanitiseHeaders="true" sort="smart">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+            <log id="treeHeight" spec="beast.base.evolution.tree.TreeHeightLogger" tree="@tree"/>
+            <log idref="silencingRate" />
+            <log idref="clockRate.c"/>
+            <log idref="relativeGeoRates.s:tissue"/>
+            <log idref="traitClockRate"/>
+            <log id="tissueSubstModelLogger" spec="beam.substitutionmodel.TissueSubstitutionModelLogger" dataType="@tissueDatatype" model="@substModelMigration"/>
+            <log idref="treeLikelihood"/>
+            <log idref="traitLikelihood"/>
+            <log idref="birthDiffRate"/>
+            <log idref="relativeDeathRate"/>
+            <log idref="piPrimaryTissueFreq"/>
+        </logger>
+
+        <logger id="screenlog" spec="Logger" logEvery="$(sampleFreq)">
+            <log idref="posterior"/>
+            <log spec="util.ESS" arg="@posterior"/>
+        </logger>
+
+        <logger id="treeWithTraitLogger" spec="Logger" fileName="$(outputPrefix).trees" logEvery="$(sampleFreq)" mode="tree">
+                <log id="treeWithTraitLoggerItem" spec="beastclassic.evolution.tree.TreeWithTraitLogger" tree="@tree">
+                    <metadata idref="traitLikelihood"/>
+                </log>
+        </logger>
+
+    <operatorschedule id="OperatorSchedule" spec="kernel.BactrianOperatorSchedule"/>
+</run>
+</beast>

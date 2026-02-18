@@ -46,6 +46,6 @@ Before running the pipeline, update `config/config.yaml` with:
 
 ## Note on environment management
 
-Due to size constraints, Singularity images are not included in the repository and must be built from the provided `.def` files or obtained separately (from staklins@cshl.edu). The MACH2 step requires a Gurobi license, which needs to be configured according to the user's setup. BEAM must be installed on the users system.
+Due to size constraints, Singularity images are not included in the repository and must be built from the provided `.def` files or obtained separately (from staklins@cshl.edu). The MACH2 step requires a Gurobi license, which needs to be configured according to the user's setup. BEAM must be installed systemwide, as I have not yet made an effort to build BEAST2 in a container, which it requires.
 
 Other changes may need to be made to the pipeline if not using it on the CSHL HPC server.

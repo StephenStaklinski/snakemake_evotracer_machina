@@ -1,7 +1,6 @@
 #!/bin/bash
 
 snakemake \
--n \
 --use-singularity \
 --singularity-args "--bind $HOME/ --bind $GRB_LICENSE_FILE:/mnt/gurobi.lic --env GRB_LICENSE_FILE=/mnt/gurobi.lic" \
 --snakefile ./Snakefile \

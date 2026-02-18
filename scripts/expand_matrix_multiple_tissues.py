@@ -23,7 +23,7 @@ with open(tissues_file_tsv) as f, open(output_tissues_csv, "w") as out:
 
 with open(matrix_file_tsv) as f, open(output_matrix_tsv, "w") as out:
     header = f.readline().strip().split("\t")
-    out.write("\t".join(header) + "\n")
+    out.write("\t" + "\t".join(header) + "\n")   # Extra tab at the beginning needed to align with mutation columns
     for line in f:
         taxa_name, *values = line.strip().split("\t")
         if taxa_name in tissues:
