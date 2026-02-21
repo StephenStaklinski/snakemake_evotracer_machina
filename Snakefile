@@ -47,7 +47,7 @@ rule all:
         expand("{outdir}/mach2/{mouse}/overall_transition_matrix.pdf", outdir=outdir, mouse=mice),
         expand("{outdir}/mach2/{mouse}/overall_seeding_topologies.pdf", outdir=outdir, mouse=mice),
         [expand("{outdir}/vine/{mouse}/{cp}/vine_probability_graph.csv", outdir=outdir, mouse=m, cp=get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
-        [expand("{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}.term", outdir=outdir, mouse=m, cp=get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
+        [expand("{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}_probability_graph.csv", outdir=outdir, mouse=m, cp=get_elements_from_file(f"{outdir}/cp_split/{m}")) for m in mice],
 
 rule runEvotracer:
     input:
@@ -621,7 +621,7 @@ rule runVine:
         """
         vine -M 400 -c 100 -v 0 \
             -i CRISPR {input.expandedMatrix} \
-            --log {output.vineLog} \
+            --logfile {output.vineLog} \
             --mean {output.vineMean} \
             --migration {input.expandedTissues} \
             --primary {params.primaryTissue} \
@@ -705,9 +705,39 @@ rule runBeam:
             -D primaryTissue={params.primaryTissue} \
             -D originTime={params.experimentTime} \
             -D numTissueRates=$numTissueRates \
-            -D mcmcLength=100000000 \
+            -D mcmcLength=200000000 \
             -D sampleFreq=10000 \
             -D outputPrefix=\"{params.outputPrefix}\" \
             {params.outputdir}/{params.outputPrefix}.xml \
             > {output.beamTerm}
+        """
+
+rule postprocessBeam:
+    input:
+        beamTrees = "{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}.trees",
+    output:
+        beamProbGraph = "{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}_probability_graph.csv",
+        threshold50plot = "{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}_50.pdf",
+        threshold75plot = "{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}_75.pdf",
+        threshold90plot = "{outdir}/beam/{mouse}/{cp}/beam_{mouse}_{cp}_90.pdf",
+    params:
+        stateKey = "location",
+        primaryTissue = lambda wildcards: config['primaryTissue'][wildcards.mouse],
+        experimentTime = lambda wildcards: config['experimentTime'][wildcards.mouse],
+        burnin = 0.10,
+        outputPrefix = "{outdir}/beam/{mouse}/{cp}/beam",
+        scripts = config['scripts'],
+        threads = 1,
+        mem = '10G',
+    singularity:
+        f"{envs}/graphposterior.sif"
+    shell:
+        """
+        python {params.scripts}/beam_postprocessing.py \
+            {input.beamTrees} \
+            {params.stateKey} \
+            {params.primaryTissue} \
+            {params.experimentTime} \
+            {params.burnin} \
+            {params.outputPrefix}
         """

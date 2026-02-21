@@ -101,7 +101,7 @@ of BEAST2. -->
                 
                 <distribution id="treeLikelihood" spec="beam.likelihood.IrreversibleTreeLikelihood" origin="@originTime" data="@alignment" tree="@tree">
                     <siteModel spec="SiteModel" id="siteModel" mutationRate="1" gammaCategoryCount="1">
-                        <substModel id="substModel" spec="beam.substitutionmodel.CrisprSubstitutionModel" silencingRate="@silencingRate" data="@alignment">
+                        <substModel id="substModel" spec="beam.substitutionmodel.CrisprSubstitutionModel" modelStructure="sitewise" editRateCalculationMode="uniform" silencingRate="@silencingRate" data="@alignment">
                             <frequencies spec="beast.base.evolution.substitutionmodel.Frequencies" frequencies="1" estimate="false"/>
                         </substModel>
                     </siteModel>
@@ -119,26 +119,26 @@ of BEAST2. -->
 
         </distribution>
 
-    <!-- Operators defining what proposals are made during MCMC iterations -->
+        <!-- Operators defining what proposals are made during MCMC iterations -->
     <!-- Tree topology moves -->
     <operator id="exchangeNarrow" spec="Exchange" isNarrow="true" tree="@tree" weight="15"/>
-    <operator id="exchangeWide" spec="Exchange" isNarrow="false" tree="@tree" weight="3"/>
-    <operator id="wilsonBalding" spec="WilsonBalding" tree="@tree" weight="1"/>
+    <operator id="exchangeWide" spec="Exchange" isNarrow="false" tree="@tree" weight="1"/>
+    <operator id="wilsonBalding" spec="WilsonBalding" tree="@tree" weight="0.3"/>
     <!-- Branch-length / node-height moves -->
     <operator id="uniform" spec="Uniform" tree="@tree" weight="10"/>
-    <operator id="subtreeSlide" spec="SubtreeSlide" tree="@tree" weight="10"/>
-    <operator id="subtreeSlideLarge" spec="SubtreeSlide" tree="@tree" size="15" weight="3"/>
+    <operator id="subtreeSlide" spec="SubtreeSlide" tree="@tree" weight="5"/>
+    <operator id="subtreeSlideLarge" spec="SubtreeSlide" tree="@tree" size="15" weight="1"/>
     <!-- Operators on barcode editing parameters-->
     <operator id="clockRateScaler" spec="ScaleOperator" parameter="@clockRate.c" scaleFactor="0.8" weight="3"/>
     <operator id="silencingRateScaler" spec="ScaleOperator" parameter="@silencingRate" scaleFactor="0.8" weight="3"/>
+    <!-- Operators on phylodynamic prior parameters -->
+    <operator id="birthDiffRateScaler" spec="ScaleOperator" parameter="@birthDiffRate" scaleFactor="0.8" weight="3"/>
+    <operator id="relativeDeathRateScaler" spec="ScaleOperator" parameter="@relativeDeathRate" scaleFactor="0.8" weight="3"/>
     <!-- Operators on tissue model parameters -->
     <operator id="georateScaler.s:tissue" spec="ScaleOperator" parameter="@relativeGeoRates.s:tissue" scaleAllIndependently="true" scaleFactor="0.9" weight="10"/>
     <operator id="tissueClockRateScaler" spec="ScaleOperator" parameter="@traitClockRate" scaleFactor="0.8" weight="3"/>
     <operator id="piPrimaryTissueFreqScaler" spec="ScaleOperator" parameter="@piPrimaryTissueFreq" scaleFactor="0.8" weight="3"/>
-    <!-- Operators on phylodynamic prior parameters -->
-    <operator id="birthDiffRateScaler" spec="ScaleOperator" parameter="@birthDiffRate" scaleFactor="0.8" weight="3"/>
-    <operator id="relativeDeathRateScaler" spec="ScaleOperator" parameter="@relativeDeathRate" scaleFactor="0.8" weight="3"/>
-
+    
     <!-- Loggers -->
         <logger id="tracelog" spec="Logger" fileName="$(outputPrefix).log" logEvery="$(sampleFreq)" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
