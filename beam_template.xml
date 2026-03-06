@@ -108,7 +108,7 @@ of BEAST2. -->
                     <branchRateModel spec="beast.base.evolution.branchratemodel.StrictClockModel" clock.rate="@clockRate.c"/>
                 </distribution>
                 
-                <distribution id="traitLikelihood" spec="beam.likelihood.TissueLikelihood" origin="@originTime" tree="@tree" data="@tissue">
+                <distribution id="tissueLikelihood" spec="beam.likelihood.TissueLikelihood" origin="@originTime" tree="@tree" data="@tissue">
                     <siteModel id="geoSiteModel.s:tissue" spec="SiteModel" gammaCategoryCount="1" mutationRate="1">
                         <substModel id="substModelMigration" spec="beam.substitutionmodel.TissueSubstitutionModel" rates="@relativeGeoRates.s:tissue" pi="@piPrimaryTissueFreq" frequencies="@rootTissueFrequencies"/>
                     </siteModel>
@@ -151,7 +151,7 @@ of BEAST2. -->
             <log idref="traitClockRate"/>
             <log id="tissueSubstModelLogger" spec="beam.substitutionmodel.TissueSubstitutionModelLogger" dataType="@tissueDatatype" model="@substModelMigration"/>
             <log idref="treeLikelihood"/>
-            <log idref="traitLikelihood"/>
+            <log idref="tissueLikelihood"/>
             <log idref="birthDiffRate"/>
             <log idref="relativeDeathRate"/>
             <log idref="piPrimaryTissueFreq"/>
@@ -163,9 +163,7 @@ of BEAST2. -->
         </logger>
 
         <logger id="treeWithTraitLogger" spec="Logger" fileName="$(outputPrefix).trees" logEvery="$(sampleFreq)" mode="tree">
-                <log id="treeWithTraitLoggerItem" spec="beastclassic.evolution.tree.TreeWithTraitLogger" tree="@tree">
-                    <metadata idref="traitLikelihood"/>
-                </log>
+                <log id="treeWithTraitLoggerItem" spec="beam.tree.TreeWithTissuesAndOriginLogger" tree="@tree" tissues="@tissueLikelihood"/>
         </logger>
 
     <operatorschedule id="OperatorSchedule" spec="kernel.BactrianOperatorSchedule"/>
